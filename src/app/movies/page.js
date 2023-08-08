@@ -28,12 +28,12 @@ export default function Home() {
 		};
 
 		fetchMovies();
-	});
+	}, []);
 
 	return (
 		<div>
-			<Nav></Nav>
-			
+			<Nav />
+
 			<ul>
 				{movies.map((movie) => (
 					<>
