@@ -11,7 +11,7 @@ export default function Home() {
 		const fetchLastFm = async () => {
 			axios({
 				method: "GET",
-				url: "http://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=noahffiliation&api_key=" + process.env.NEXT_PUBLIC_LASTFM_API_KEY + "&format=json",
+				url: "https://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=noahffiliation&api_key=" + process.env.NEXT_PUBLIC_LASTFM_API_KEY + "&format=json",
 			}).then((response) => {
 				setLastfm(response.data.recenttracks.track);
 			}).catch((error) => {
@@ -29,7 +29,7 @@ export default function Home() {
 			<ul>
 				{lastfm.map((track) => (
 					<>
-						<li>
+						<li key={track.mbid}>
 							{track.artist["#text"]} - {track.name}
 						</li>
 						<br />

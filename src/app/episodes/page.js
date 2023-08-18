@@ -20,7 +20,6 @@ export default function Home() {
 				url: 'https://api.trakt.tv/users/noahffiliation/history/shows?limit=25',
 				headers: TRAKT_HEADER
 			}).then((response) => {
-				console.log(response.data);
 				setEpisodes(response.data);
 			}).catch((error) => {
 				console.log(error);
