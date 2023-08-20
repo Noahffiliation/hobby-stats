@@ -9,16 +9,10 @@ const Nav = () => {
 					<Link href='/'>Home</Link>
 				</NavbarItem>
 				<NavbarItem>
-					<Link href='/games'>Games</Link>
-				</NavbarItem>
-				<NavbarItem>
 					<Link href='/movies'>Movie Watchlist</Link>
 				</NavbarItem>
 				<NavbarItem>
 					<Link href='/tv'>TV Watchlist</Link>
-				</NavbarItem>
-				<NavbarItem>
-					<Link href='/letterboxd'>Recent Letterboxd Reviews</Link>
 				</NavbarItem>
 				<NavbarItem>
 					<Link href='/episodes'>Recently Watched TV Episodes</Link>
