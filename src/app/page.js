@@ -3,7 +3,7 @@
 import { Progress } from '@nextui-org/react'
 import { useState, useEffect } from 'react'
 import Nav from './components/Nav'
-import { getTraktStats, getTraktMovies, getTraktShows } from './api/get-data'
+import { getTraktStats, getWatchlistMovies, getWatchlistShows } from './api/get-data'
 
 export default function Home() {
 	const [movies_watched, setMoviesWatched] = useState([]);
@@ -25,7 +25,7 @@ export default function Home() {
 
 	useEffect(() => {
 		const movies_watchlist = async () => {
-			getTraktMovies().then((response) => {
+			getWatchlistMovies().then((response) => {
 				setMoviesWatchlist(response.length);
 			}).catch((error) => {
 				console.log(error);
@@ -49,7 +49,7 @@ export default function Home() {
 
 	useEffect(() => {
 		const shows_watchlist = async () => {
-			getTraktShows().then((response) => {
+			getWatchlistShows().then((response) => {
 				setShowsWatchlist(response.length);
 			}).catch((error) => {
 				console.log(error);

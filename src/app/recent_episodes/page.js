@@ -2,25 +2,15 @@
 
 import { useEffect, useState } from "react";
 import Nav from "../components/Nav";
-import axios from "axios";
-
-const TRAKT_HEADER = {
-	'Content-Type': 'application/json',
-	'trakt-api-version': '2',
-	'trakt-api-key': process.env.NEXT_PUBLIC_TRAKT_API_KEY
-};
+import { getRecentEpisodes } from "../api/get-data";
 
 export default function Home() {
 	const [episodes, setEpisodes] = useState([]);
 
 	useEffect(() => {
 		const fetchEpisodes = async () => {
-			axios({
-				method: "GET",
-				url: 'https://api.trakt.tv/users/noahffiliation/history/shows?limit=25',
-				headers: TRAKT_HEADER
-			}).then((response) => {
-				setEpisodes(response.data);
+			getRecentEpisodes().then((response) => {
+				setEpisodes(response);
 			}).catch((error) => {
 				console.log(error);
 			});

@@ -2,21 +2,18 @@
 
 import Nav from "../components/Nav";
 import { useEffect, useState } from "react";
-import axios from "axios";
+import { getLastFm } from "../api/get-data";
 
 export default function Home() {
 	const [lastfm, setLastfm] = useState([]);
 
 	useEffect(() => {
 		const fetchLastFm = async () => {
-			axios({
-				method: "GET",
-				url: "https://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=noahffiliation&api_key=" + process.env.NEXT_PUBLIC_LASTFM_API_KEY + "&format=json",
-			}).then((response) => {
-				setLastfm(response.data.recenttracks.track);
+			getLastFm().then((response) => {
+				setLastfm(response.recenttracks.track);
 			}).catch((error) => {
 				console.log(error);
-			});
+			})
 		};
 
 		fetchLastFm();

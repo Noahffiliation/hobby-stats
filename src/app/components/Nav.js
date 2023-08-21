@@ -12,10 +12,13 @@ const Nav = () => {
 					<Link href='/movies'>Movie Watchlist</Link>
 				</NavbarItem>
 				<NavbarItem>
+					<Link href='/recent_movies'>Recently Watched Movies</Link>
+				</NavbarItem>
+				<NavbarItem>
 					<Link href='/tv'>TV Watchlist</Link>
 				</NavbarItem>
 				<NavbarItem>
-					<Link href='/episodes'>Recently Watched TV Episodes</Link>
+					<Link href='/recent_episodes'>Recently Watched TV Episodes</Link>
 				</NavbarItem>
 				<NavbarItem>
 					<Link href='/lastfm'>Recent Tracks</Link>
