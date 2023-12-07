@@ -12,7 +12,7 @@
     "@nextui-org/react": "^2.2.9",
     "@vercel/analytics": "^1.1.1",
     "eslint": "8.55.0",
-    "eslint-config-next": "14.0.3",
+    "eslint-config-next": "14.0.4",
     "framer-motion": "^10.16.14",
     "next": "^14.0.4",
     "react": "18.2.0",
