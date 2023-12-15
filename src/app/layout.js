@@ -1,7 +1,7 @@
 import './globals.css'
 import { Providers } from "./providers";
 import { Analytics } from '@vercel/analytics/react';
-import { SpeedInsights } from '@vercel/speed-insights/mext';
+import { SpeedInsights } from '@vercel/speed-insights/next';
 
 export const metadata = {
   title: 'Hobby Stats'
