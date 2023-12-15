@@ -1,6 +1,7 @@
 import './globals.css'
 import { Providers } from "./providers";
 import { Analytics } from '@vercel/analytics/react';
+import { SpeedInsights } from '@vercel/speed-insights/mext';
 
 export const metadata = {
   title: 'Hobby Stats'
@@ -13,6 +14,7 @@ export default function RootLayout({ children }) {
 				<Providers>
 					{children}
 					<Analytics />
+					<SpeedInsights />
 				</Providers>
 			</body>
     </html>
