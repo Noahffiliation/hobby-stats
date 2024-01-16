@@ -11,7 +11,7 @@
   "dependencies": {
     "@nextui-org/react": "^2.2.9",
     "@vercel/analytics": "^1.1.1",
-    "@vercel/speed-insights": "^1.0.3",
+    "@vercel/speed-insights": "^1.0.4",
     "eslint": "8.56.0",
     "eslint-config-next": "14.0.4",
     "framer-motion": "^10.18.0",
