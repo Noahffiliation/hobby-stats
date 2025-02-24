@@ -6,15 +6,15 @@ import Nav from './components/Nav'
 import { getTraktStats, getWatchlistMovies, getWatchlistShows } from './api/get-data'
 
 export default function Home() {
-	const [movies_watched, setMoviesWatched] = useState([]);
-	const [movies_watchlist, setMoviesWatchlist] = useState([]);
-	const [shows_watched, setShowsWatched] = useState([]);
-	const [shows_watchlist, setShowsWatchlist] = useState([]);
+	const [movies_watched, setMovies_watched] = useState([]);
+	const [movies_watchlist, setMovies_watchlist] = useState([]);
+	const [shows_watched, setShows_watched] = useState([]);
+	const [shows_watchlist, setShows_watchlist] = useState([]);
 
 	useEffect(() => {
 		const movies_watched = async () => {
 			getTraktStats().then((response) => {
-				setMoviesWatched(response.movies.watched);
+				setMovies_watched(response.movies.watched);
 			}).catch((error) => {
 				console.log(error);
 			});
@@ -26,7 +26,7 @@ export default function Home() {
 	useEffect(() => {
 		const movies_watchlist = async () => {
 			getWatchlistMovies().then((response) => {
-				setMoviesWatchlist(response.length);
+				setMovies_watchlist(response.length);
 			}).catch((error) => {
 				console.log(error);
 			});
@@ -38,7 +38,7 @@ export default function Home() {
 	useEffect(() => {
 		const shows_watched = async () => {
 			getTraktStats().then((response) => {
-				setShowsWatched(response.shows.watched);
+				setShows_watched(response.shows.watched);
 			}).catch((error) => {
 				console.log(error);
 			});
@@ -50,7 +50,7 @@ export default function Home() {
 	useEffect(() => {
 		const shows_watchlist = async () => {
 			getWatchlistShows().then((response) => {
-				setShowsWatchlist(response.length);
+				setShows_watchlist(response.length);
 			}).catch((error) => {
 				console.log(error);
 			});

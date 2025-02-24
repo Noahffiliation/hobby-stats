@@ -9,3 +9,7 @@ export function Providers({children}) {
     </NextUIProvider>
   )
 }
+
+Providers.propTypes = {
+  children: PropTypes.node.isRequired
+}
