@@ -20,7 +20,7 @@
     "react-dom": "19.0.0"
   },
   "devDependencies": {
-    "autoprefixer": "^10.4.20",
+    "autoprefixer": "^10.4.21",
     "tailwindcss": "^4.0.12"
   }
 }
