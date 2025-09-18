@@ -14,7 +14,7 @@
     "@vercel/speed-insights": "^1.2.0",
     "eslint": "^9.35.0",
     "eslint-config-next": "^15.5.3",
-    "framer-motion": "^12.23.14",
+    "framer-motion": "^12.23.15",
     "next": "^15.5.3",
     "react": "19.1.1",
     "react-dom": "19.1.1"
