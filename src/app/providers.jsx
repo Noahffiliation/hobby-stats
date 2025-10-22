@@ -1,12 +1,13 @@
 'use client'
 
-import {NextUIProvider} from '@nextui-org/react'
+import { HeroUIProvider } from '@heroui/react';
+import PropTypes from 'prop-types';
 
 export function Providers({children}) {
   return (
-    <NextUIProvider>
+    <HeroUIProvider>
       {children}
-    </NextUIProvider>
+    </HeroUIProvider>
   )
 }
 

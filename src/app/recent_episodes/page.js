@@ -24,14 +24,14 @@ export default function Home() {
 			<Nav />
 
 			<ul>
-				{episodes.map((episode) => (
-					<>
-						<li key={episode.id}>
+				{episodes.map((episode, idx) => {
+					const key = episode.id || `${episode.show.title}-${episode.episode.season}-${episode.episode.number}-${idx}`;
+					return (
+						<li key={key}>
 							{episode.show.title} ({episode.show.year}) - Season {episode.episode.season} Episode {episode.episode.number} - {new Date(episode.watched_at).toLocaleString()}
 						</li>
-						<br />
-					</>
-				))}
+					)
+				})}
 			</ul>
 		</div>
 	)

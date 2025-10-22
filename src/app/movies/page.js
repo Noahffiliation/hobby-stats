@@ -24,15 +24,16 @@ export default function Home() {
 			<Nav />
 
 			<ul>
-				{movies.map((movie) => (
-					<>
-						<li key={movie.id}>
+				{movies.map((movie, idx) => {
+					const ids = movie.movie.ids || {};
+					const key = ids.trakt || ids.tmdb || `${movie.movie.title}-${movie.movie.year || ''}-${idx}`;
+					return (
+						<li key={key}>
 							{movie.movie.title}
 							{movie.movie.year ? ` - ${movie.movie.year}` : ''}
 						</li>
-						<br />
-					</>
-				))}
+					)
+				})}
 			</ul>
 		</div>
 	);

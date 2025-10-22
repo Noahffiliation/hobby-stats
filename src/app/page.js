@@ -1,6 +1,6 @@
 'use client'
 
-import { Progress } from '@nextui-org/react'
+import { Progress } from '@heroui/react'
 import { useState, useEffect } from 'react'
 import Nav from './components/Nav'
 import { getTraktStats, getWatchlistMovies, getWatchlistShows } from './api/get-data'
@@ -66,11 +66,11 @@ export default function Home() {
 		<div>
 			<Nav />
 
-			<Progress size='lg' label={`Movie Progess - ${movies_watched} / ${movies_watched + movies_watchlist}`} color='default' showValueLabel value={movie_progress} />
+			<Progress size='lg' label={`Movie Progress - ${movies_watched} / ${movies_watched + movies_watchlist}`} color='default' showValueLabel value={movie_progress} />
 
 			<br />
 
-			<Progress size='lg' label={`Show Progess - ${shows_watched} / ${shows_watched + shows_watchlist}`} color='default' showValueLabel value={show_progress} />
+			<Progress size='lg' label={`Show Progress - ${shows_watched} / ${shows_watched + shows_watchlist}`} color='default' showValueLabel value={show_progress} />
 		</div>
   )
 }

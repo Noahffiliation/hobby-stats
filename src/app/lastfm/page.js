@@ -24,14 +24,14 @@ export default function Home() {
 			<Nav />
 
 			<ul>
-				{lastfm.map((track) => (
-					<>
-						<li key={track.mbid}>
+				{lastfm.map((track, idx) => {
+					const key = track.mbid || `${track.artist["#text"]}-${track.name}-${idx}`;
+					return (
+						<li key={key}>
 							{track.artist["#text"]} - {track.name}
 						</li>
-						<br />
-					</>
-				))}
+					)
+				})}
 			</ul>
 		</div>
 	)

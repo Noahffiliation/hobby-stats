@@ -1,4 +1,4 @@
-import { Navbar, NavbarContent, NavbarItem } from '@nextui-org/react'
+import { Navbar, NavbarContent, NavbarItem } from '@heroui/react'
 import Link from 'next/link'
 
 const Nav = () => {

@@ -25,13 +25,11 @@ export default function Home() {
 
 			<ul>
 				{tv.map((tv) => (
-					<>
-						<li key={tv.id}>
-							{tv.show.title}
-							{tv.show.year ? ` - ${tv.show.year}` : ''}
-						</li>
+					<li key={tv.id}>
+						{tv.show.title}
+						{tv.show.year ? ` - ${tv.show.year}` : ''}
 						<br />
-					</>
+					</li>
 				))}
 			</ul>
 		</div>
