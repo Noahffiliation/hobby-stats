@@ -25,7 +25,7 @@ export default function Home() {
 
 			<ul>
 				{lastfm.map((track, idx) => {
-					const key = track.mbid || `${track.artist["#text"]}-${track.name}-${idx}`;
+					const key = `${track.mbid || track.name}-${idx}`;
 					return (
 						<li key={key}>
 							{track.artist["#text"]} - {track.name}

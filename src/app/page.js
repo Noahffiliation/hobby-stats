@@ -6,10 +6,10 @@ import Nav from './components/Nav'
 import { getTraktStats, getWatchlistMovies, getWatchlistShows } from './api/get-data'
 
 export default function Home() {
-	const [movies_watched, setMovies_watched] = useState([]);
-	const [movies_watchlist, setMovies_watchlist] = useState([]);
-	const [shows_watched, setShows_watched] = useState([]);
-	const [shows_watchlist, setShows_watchlist] = useState([]);
+	const [movies_watched, setMovies_watched] = useState(0);
+	const [movies_watchlist, setMovies_watchlist] = useState(0);
+	const [shows_watched, setShows_watched] = useState(0);
+	const [shows_watchlist, setShows_watchlist] = useState(0);
 
 	useEffect(() => {
 		const movies_watched = async () => {
@@ -59,10 +59,13 @@ export default function Home() {
 		shows_watchlist();
 	}, [])
 
-	const movie_progress = movies_watched / (movies_watched + movies_watchlist) * 100;
-	const show_progress = shows_watched / (shows_watched + shows_watchlist) * 100;
+	const total_movies = movies_watched + movies_watchlist;
+	const total_shows = shows_watched + shows_watchlist;
 
-  return (
+	const movie_progress = total_movies === 0 ? 0 : (movies_watched / total_movies) * 100;
+	const show_progress = total_shows === 0 ? 0 : (shows_watched / total_shows) * 100;
+
+	return (
 		<div>
 			<Nav />
 
@@ -72,5 +75,5 @@ export default function Home() {
 
 			<Progress size='lg' label={`Show Progress - ${shows_watched} / ${shows_watched + shows_watchlist}`} color='default' showValueLabel value={show_progress} />
 		</div>
-  )
+	)
 }
