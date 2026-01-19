@@ -16,6 +16,7 @@ jest.mock('../api/get-data', () => ({
 }));
 
 jest.mock('@heroui/react', () => ({
+    // eslint-disable-next-line react/prop-types
     Progress: ({ label, value }) => <div data-testid="progress" aria-label={label} data-value={value}>{label}</div>,
 }));
 

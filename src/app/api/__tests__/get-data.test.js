@@ -8,7 +8,7 @@ import {
 } from '../get-data';
 
 // Mock global fetch
-global.fetch = jest.fn();
+globalThis.fetch = jest.fn();
 
 describe('API Utils', () => {
     beforeEach(() => {
