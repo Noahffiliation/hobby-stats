@@ -84,8 +84,33 @@ describe('API Utils', () => {
         expect(fetch).toHaveBeenCalledWith(expect.stringContaining('ws.audioscrobbler.com'), expect.objectContaining({ method: 'GET' }));
     });
 
-    it('throws error when fetch fails', async () => {
+    it('getTraktStats throws error when fetch fails', async () => {
         mockErrorResponse();
         await expect(getTraktStats()).rejects.toThrow('Failed to fetch Trakt stats');
+    });
+
+    it('getWatchlistMovies throws error when fetch fails', async () => {
+        mockErrorResponse();
+        await expect(getWatchlistMovies()).rejects.toThrow('Failed to fetch Trakt movie watchlist');
+    });
+
+    it('getWatchlistShows throws error when fetch fails', async () => {
+        mockErrorResponse();
+        await expect(getWatchlistShows()).rejects.toThrow('Failed to fetch Trakt show watchlist');
+    });
+
+    it('getRecentMovies throws error when fetch fails', async () => {
+        mockErrorResponse();
+        await expect(getRecentMovies()).rejects.toThrow('Failed to fetch recent movies');
+    });
+
+    it('getRecentEpisodes throws error when fetch fails', async () => {
+        mockErrorResponse();
+        await expect(getRecentEpisodes()).rejects.toThrow('Failed to fetch recent episodes');
+    });
+
+    it('getLastFm throws error when fetch fails', async () => {
+        mockErrorResponse();
+        await expect(getLastFm()).rejects.toThrow('Failed to fetch last.fm stats');
     });
 });
