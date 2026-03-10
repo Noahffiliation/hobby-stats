@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "@heroui/react": "^2.8.10",
-    "@vercel/analytics": "^1.6.1",
+    "@vercel/analytics": "^2.0.0",
     "@vercel/speed-insights": "^2.0.0",
     "eslint": "^10.0.3",
     "eslint-config-next": "^16.1.6",
