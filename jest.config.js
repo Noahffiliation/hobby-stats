@@ -11,9 +11,6 @@ const config = {
     testEnvironment: 'jsdom',
     // Add more setup options before each test is run
     setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
-    moduleNameMapper: {
-        '^@heroui/react$': '<rootDir>/node_modules/@heroui/react/dist/index.js'
-    },
     coverageThreshold: {
         global: {
             branches: 80,
