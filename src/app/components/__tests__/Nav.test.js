@@ -2,6 +2,15 @@ import { render, screen } from '@testing-library/react';
 import Nav from '../Nav';
 import '@testing-library/jest-dom';
 
+jest.mock('@heroui/react', () => ({
+    // eslint-disable-next-line react/prop-types
+    Navbar: ({ children }) => <nav>{children}</nav>,
+    // eslint-disable-next-line react/prop-types
+    NavbarContent: ({ children }) => <div>{children}</div>,
+    // eslint-disable-next-line react/prop-types
+    NavbarItem: ({ children }) => <div>{children}</div>,
+}));
+
 describe('Nav Component', () => {
     it('renders all navigation links', () => {
         render(<Nav />);
