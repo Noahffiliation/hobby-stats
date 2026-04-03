@@ -26,12 +26,12 @@ describe('Home Page', () => {
     });
 
     it('renders Nav and stats with progress', async () => {
-        getTraktStats.mockResolvedValue({
+        (getTraktStats as jest.Mock).mockResolvedValue({
             movies: { watched: 100 },
             shows: { watched: 50 },
         });
-        getWatchlistMovies.mockResolvedValue(new Array(20)); // length 20
-        getWatchlistShows.mockResolvedValue(new Array(10)); // length 10
+        (getWatchlistMovies as jest.Mock).mockResolvedValue(new Array(20)); // length 20
+        (getWatchlistShows as jest.Mock).mockResolvedValue(new Array(10)); // length 10
 
         render(<Home />);
 

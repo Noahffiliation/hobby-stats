@@ -12,20 +12,20 @@ globalThis.fetch = jest.fn();
 
 describe('API Utils', () => {
     beforeEach(() => {
-        fetch.mockClear();
+        (fetch as jest.Mock).mockClear();
         process.env.NEXT_PUBLIC_TRAKT_API_KEY = 'mock-api-key';
         process.env.NEXT_PUBLIC_LASTFM_API_KEY = 'mock-lastfm-key';
     });
 
     const mockSuccessResponse = (data) => {
-        fetch.mockResolvedValueOnce({
+        (fetch as jest.Mock).mockResolvedValueOnce({
             ok: true,
             json: async () => data,
         });
     };
 
     const mockErrorResponse = () => {
-        fetch.mockResolvedValueOnce({
+        (fetch as jest.Mock).mockResolvedValueOnce({
             ok: false,
         });
     };

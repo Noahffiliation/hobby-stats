@@ -24,7 +24,7 @@ describe('TV Watchlist Page', () => {
             { id: 2, show: { title: 'Show 2', year: 2021 } },
         ];
 
-        getWatchlistShows.mockResolvedValue(mockShows);
+        (getWatchlistShows as jest.Mock).mockResolvedValue(mockShows);
 
         render(<Home />);
 

@@ -28,7 +28,7 @@ describe('Recent Episodes Page', () => {
             },
         ];
 
-        getRecentEpisodes.mockResolvedValue(mockEpisodes);
+        (getRecentEpisodes as jest.Mock).mockResolvedValue(mockEpisodes);
 
         render(<Home />);
 

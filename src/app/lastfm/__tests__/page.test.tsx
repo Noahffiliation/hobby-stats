@@ -15,7 +15,7 @@ jest.mock('../../api/get-data', () => ({
 
 describe('Last.fm Page', () => {
     beforeEach(() => {
-        getLastFm.mockClear();
+        (getLastFm as jest.Mock).mockClear();
     });
 
     it('renders Nav and fetches/displays tracks', async () => {
@@ -32,7 +32,7 @@ describe('Last.fm Page', () => {
             },
         ];
 
-        getLastFm.mockResolvedValue({
+        (getLastFm as jest.Mock).mockResolvedValue({
             recenttracks: {
                 track: mockTracks,
             },
@@ -49,7 +49,7 @@ describe('Last.fm Page', () => {
     });
 
     it('handles empty data gracefully', async () => {
-        getLastFm.mockResolvedValue({
+        (getLastFm as jest.Mock).mockResolvedValue({
             recenttracks: {
                 track: [],
             },

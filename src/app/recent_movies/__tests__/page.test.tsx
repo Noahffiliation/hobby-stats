@@ -27,7 +27,7 @@ describe('Recent Movies Page', () => {
             },
         ];
 
-        getRecentMovies.mockResolvedValue(mockMovies);
+        (getRecentMovies as jest.Mock).mockResolvedValue(mockMovies);
 
         render(<Home />);
 
@@ -40,7 +40,7 @@ describe('Recent Movies Page', () => {
 
     it('logs error when fetch fails', async () => {
         const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
-        getRecentMovies.mockRejectedValue(new Error('Fetch failed'));
+        (getRecentMovies as jest.Mock).mockRejectedValue(new Error('Fetch failed'));
 
         render(<Home />);
 

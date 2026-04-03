@@ -24,7 +24,7 @@ describe('Movies Watchlist Page', () => {
             { movie: { title: 'Movie 2', year: 2021, ids: { tmdb: 2 } } },
         ];
 
-        getWatchlistMovies.mockResolvedValue(mockMovies); // Already reversed in component logic? Component calls reverse(), so fetch should return array.
+        (getWatchlistMovies as jest.Mock).mockResolvedValue(mockMovies); // Already reversed in component logic? Component calls reverse(), so fetch should return array.
 
         render(<Home />);
 
@@ -38,7 +38,7 @@ describe('Movies Watchlist Page', () => {
 
     it('logs error when fetch fails', async () => {
         const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
-        getWatchlistMovies.mockRejectedValue(new Error('Fetch failed'));
+        (getWatchlistMovies as jest.Mock).mockRejectedValue(new Error('Fetch failed'));
 
         render(<Home />);
 
@@ -54,7 +54,7 @@ describe('Movies Watchlist Page', () => {
             { movie: { title: 'Movie 2', ids: {} } },
         ];
 
-        getWatchlistMovies.mockResolvedValue(mockMovies);
+        (getWatchlistMovies as jest.Mock).mockResolvedValue(mockMovies);
 
         render(<Home />);
 
