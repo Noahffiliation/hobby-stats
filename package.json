@@ -16,7 +16,7 @@
     "@heroui/react": "^2.8.10",
     "@vercel/analytics": "^2.0.1",
     "@vercel/speed-insights": "^2.0.0",
-    "eslint": "^9.39.4",
+    "eslint": "^10.2.1",
     "eslint-config-next": "^16.2.4",
     "framer-motion": "^12.38.0",
     "next": "^16.2.4",
