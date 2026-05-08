@@ -37,7 +37,7 @@
     "@types/react": "19.2.14",
     "autoprefixer": "^10.5.0",
     "jest": "^30.4.0",
-    "jest-environment-jsdom": "^30.4.0",
+    "jest-environment-jsdom": "^30.4.1",
     "postcss": "^8.5.14",
     "tailwindcss": "^4.2.4",
     "typescript": "^6.0.3"
