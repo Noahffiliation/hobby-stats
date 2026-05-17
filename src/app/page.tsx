@@ -69,11 +69,11 @@ export default function Home() {
 		<div>
 			<Nav />
 
-			<Progress size='lg' label={`Movie Progress - ${movies_watched} / ${movies_watched + movies_watchlist}`} color='default' showValueLabel value={movie_progress} />
+			<Progress size='lg' label={`Movie Progress - ${movies_watched} / ${total_movies}`} color='default' showValueLabel value={movie_progress} />
 
 			<br />
 
-			<Progress size='lg' label={`Show Progress - ${shows_watched} / ${shows_watched + shows_watchlist}`} color='default' showValueLabel value={show_progress} />
+			<Progress size='lg' label={`Show Progress - ${shows_watched} / ${total_shows}`} color='default' showValueLabel value={show_progress} />
 		</div>
 	)
 }

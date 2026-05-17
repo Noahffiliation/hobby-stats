@@ -45,7 +45,7 @@ describe('API Utils', () => {
 
         const result = await getWatchlistMovies();
         expect(result).toEqual(mockData);
-        expect(fetch).toHaveBeenCalledWith('https://api.trakt.tv/users/noahffiliation/watchlist/movies/released', expect.any(Object));
+        expect(fetch).toHaveBeenCalledWith('https://api.trakt.tv/users/noahffiliation/watchlist/movies/released?limit=10000', expect.any(Object));
     });
 
     it('getWatchlistShows fetches data successfully', async () => {
@@ -54,7 +54,7 @@ describe('API Utils', () => {
 
         const result = await getWatchlistShows();
         expect(result).toEqual(mockData);
-        expect(fetch).toHaveBeenCalledWith('https://api.trakt.tv/users/noahffiliation/watchlist/shows/released', expect.any(Object));
+        expect(fetch).toHaveBeenCalledWith('https://api.trakt.tv/users/noahffiliation/watchlist/shows/released?limit=10000', expect.any(Object));
     });
 
     it('getRecentMovies fetches data successfully', async () => {

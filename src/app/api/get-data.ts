@@ -18,7 +18,7 @@ export async function getTraktStats() {
 }
 
 export async function getWatchlistMovies() {
-	const response = await fetch('https://api.trakt.tv/users/noahffiliation/watchlist/movies/released', {
+	const response = await fetch('https://api.trakt.tv/users/noahffiliation/watchlist/movies/released?limit=10000', {
 		method: 'GET',
 		headers: TRAKT_HEADER
 	});
@@ -31,7 +31,7 @@ export async function getWatchlistMovies() {
 }
 
 export async function getWatchlistShows() {
-	const response = await fetch('https://api.trakt.tv/users/noahffiliation/watchlist/shows/released', {
+	const response = await fetch('https://api.trakt.tv/users/noahffiliation/watchlist/shows/released?limit=10000', {
 		method: 'GET',
 		headers: TRAKT_HEADER
 	});
