@@ -1,16 +1,12 @@
 'use client'
 
 import { HeroUIProvider } from '@heroui/react';
-import PropTypes from 'prop-types';
+import React from 'react';
 
-export function Providers({children}) {
+export function Providers({children}: Readonly<{children: React.ReactNode}>) {
   return (
     <HeroUIProvider>
       {children}
     </HeroUIProvider>
   )
-}
-
-Providers.propTypes = {
-  children: PropTypes.node.isRequired
 }
