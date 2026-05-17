@@ -5,9 +5,8 @@ import { Providers } from "./providers";
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { HeroUIProvider } from '@heroui/react';
-import PropTypes from 'prop-types';
-
-export default function RootLayout({ children }) {
+	
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
 		<HeroUIProvider>
 			<html lang="en" className='dark'>
@@ -21,8 +20,4 @@ export default function RootLayout({ children }) {
 			</html>
 		</HeroUIProvider>
   )
-}
-
-RootLayout.propTypes = {
-	children: PropTypes.node.isRequired
 }
