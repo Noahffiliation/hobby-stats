@@ -1,11 +1,18 @@
+let mockNav: any = function MockNav() {
+    return <div data-testid="nav">Nav Component</div>;
+};
+
 import { render, screen, waitFor } from '@testing-library/react';
 import Home from '../page';
 import { getRecentMovies } from '../../api/get-data';
 
 // Mock dependencies
 jest.mock('../../components/Nav', () => {
-    return function MockNav() {
-        return <div data-testid="nav">Nav Component</div>;
+    return {
+        __esModule: true,
+        get default() {
+            return mockNav;
+        }
     };
 });
 
@@ -16,6 +23,9 @@ jest.mock('../../api/get-data', () => ({
 describe('Recent Movies Page', () => {
     beforeEach(() => {
         jest.clearAllMocks();
+        mockNav = function MockNav() {
+            return <div data-testid="nav">Nav Component</div>;
+        };
     });
 
     it('renders Nav and recent movies', async () => {
@@ -66,7 +76,14 @@ describe('Recent Movies Page', () => {
     });
 
     it('renders null when Nav is invalid', async () => {
-        // This logic is partially covered by other tests. 
-        // Bypassing complex mock setup for now.
+        mockNav = null;
+        (getRecentMovies as jest.Mock).mockResolvedValue([]);
+
+        render(<Home />);
+
+        await waitFor(() => {
+            expect(screen.queryByTestId('nav')).not.toBeInTheDocument();
+            expect(getRecentMovies).toHaveBeenCalled();
+        });
     });
 });
