@@ -18,9 +18,9 @@
     "@vercel/speed-insights": "^2.0.0",
     "eslint": "^9.39.4",
     "eslint-config-next": "^16.2.11",
-    "next": "^16.2.10",
-    "react": "19.2.7",
-    "react-dom": "19.2.7"
+    "next": "^16.2.11",
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
   },
   "overrides": {
     "@babel/core": "^7.29.6",
