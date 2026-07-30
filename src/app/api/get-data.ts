@@ -4,28 +4,64 @@ const TRAKT_HEADER = {
 	'trakt-api-key': process.env.NEXT_PUBLIC_TRAKT_API_KEY
 };
 
-export async function getTraktStats() {
-	const response = await fetch('https://api.trakt.tv/users/noahffiliation/stats', {
+async function fetchTrakt(endpointPath: string, errorMessage: string) {
+	const response = await fetch(`https://api.trakt.tv/users/noahffiliation/${endpointPath}`, {
 		method: 'GET',
 		headers: TRAKT_HEADER
 	});
 
 	if (!response.ok) {
-		throw new Error('Failed to fetch Trakt stats');
+		throw new Error(errorMessage);
 	}
 
+	return response;
+}
+
+async function fetchTraktPaginated(endpointPath: string, errorMessage: string) {
+	const limit = 250;
+	const baseUrl = `https://api.trakt.tv/users/noahffiliation/${endpointPath}`;
+	const response = await fetch(`${baseUrl}?limit=${limit}&page=1`, {
+		method: 'GET',
+		headers: TRAKT_HEADER
+	});
+
+	if (!response.ok) {
+		throw new Error(errorMessage);
+	}
+
+	const pageCountHeader = response.headers?.get?.('X-Pagination-Page-Count');
+	const pageCount = pageCountHeader ? Number.parseInt(pageCountHeader, 10) : 1;
+	let allItems = await response.json();
+
+	if (pageCount > 1) {
+		const promises = [];
+		for (let p = 2; p <= pageCount; p++) {
+			promises.push(
+				fetch(`${baseUrl}?limit=${limit}&page=${p}`, {
+					method: 'GET',
+					headers: TRAKT_HEADER
+				}).then(res => {
+					if (!res.ok) throw new Error(errorMessage);
+					return res.json();
+				})
+			);
+		}
+		const remainingPages = await Promise.all(promises);
+		for (const pageData of remainingPages) {
+			allItems = allItems.concat(pageData);
+		}
+	}
+
+	return allItems;
+}
+
+export async function getTraktStats() {
+	const response = await fetchTrakt('stats', 'Failed to fetch Trakt stats');
 	return response.json();
 }
 
 export async function getWatchedShows() {
-	const response = await fetch('https://api.trakt.tv/users/noahffiliation/watched/shows?limit=1&page=1', {
-		method: 'GET',
-		headers: TRAKT_HEADER
-	});
-
-	if (!response.ok) {
-		throw new Error('Failed to fetch Trakt watched shows');
-	}
+	const response = await fetchTrakt('watched/shows?limit=1&page=1', 'Failed to fetch Trakt watched shows');
 
 	const itemCountHeader = response.headers?.get?.('X-Pagination-Item-Count');
 	if (itemCountHeader) {
@@ -37,102 +73,20 @@ export async function getWatchedShows() {
 }
 
 export async function getWatchlistMovies() {
-	const limit = 250;
-	const response = await fetch(`https://api.trakt.tv/users/noahffiliation/watchlist/movies/released?limit=${limit}&page=1`, {
-		method: 'GET',
-		headers: TRAKT_HEADER
-	});
-
-	if (!response.ok) {
-		throw new Error('Failed to fetch Trakt movie watchlist');
-	}
-
-	const pageCountHeader = response.headers?.get?.('X-Pagination-Page-Count');
-	const pageCount = pageCountHeader ? Number.parseInt(pageCountHeader, 10) : 1;
-	let allMovies = await response.json();
-
-	if (pageCount > 1) {
-		const promises = [];
-		for (let p = 2; p <= pageCount; p++) {
-			promises.push(
-				fetch(`https://api.trakt.tv/users/noahffiliation/watchlist/movies/released?limit=${limit}&page=${p}`, {
-					method: 'GET',
-					headers: TRAKT_HEADER
-				}).then(res => {
-					if (!res.ok) throw new Error('Failed to fetch Trakt movie watchlist');
-					return res.json();
-				})
-			);
-		}
-		const remainingPages = await Promise.all(promises);
-		for (const pageData of remainingPages) {
-			allMovies = allMovies.concat(pageData);
-		}
-	}
-
-	return allMovies;
+	return fetchTraktPaginated('watchlist/movies/released', 'Failed to fetch Trakt movie watchlist');
 }
 
 export async function getWatchlistShows() {
-	const limit = 250;
-	const response = await fetch(`https://api.trakt.tv/users/noahffiliation/watchlist/shows/released?limit=${limit}&page=1`, {
-		method: 'GET',
-		headers: TRAKT_HEADER
-	});
-
-	if (!response.ok) {
-		throw new Error('Failed to fetch Trakt show watchlist');
-	}
-
-	const pageCountHeader = response.headers?.get?.('X-Pagination-Page-Count');
-	const pageCount = pageCountHeader ? Number.parseInt(pageCountHeader, 10) : 1;
-	let allShows = await response.json();
-
-	if (pageCount > 1) {
-		const promises = [];
-		for (let p = 2; p <= pageCount; p++) {
-			promises.push(
-				fetch(`https://api.trakt.tv/users/noahffiliation/watchlist/shows/released?limit=${limit}&page=${p}`, {
-					method: 'GET',
-					headers: TRAKT_HEADER
-				}).then(res => {
-					if (!res.ok) throw new Error('Failed to fetch Trakt show watchlist');
-					return res.json();
-				})
-			);
-		}
-		const remainingPages = await Promise.all(promises);
-		for (const pageData of remainingPages) {
-			allShows = allShows.concat(pageData);
-		}
-	}
-
-	return allShows;
+	return fetchTraktPaginated('watchlist/shows/released', 'Failed to fetch Trakt show watchlist');
 }
 
 export async function getRecentMovies() {
-	const response = await fetch('https://api.trakt.tv/users/noahffiliation/history/movies?limit=25', {
-		method: 'GET',
-		headers: TRAKT_HEADER
-	});
-
-	if (!response.ok) {
-		throw new Error('Failed to fetch recent movies');
-	}
-
+	const response = await fetchTrakt('history/movies?limit=25', 'Failed to fetch recent movies');
 	return response.json();
 }
 
 export async function getRecentEpisodes() {
-	const response = await fetch('https://api.trakt.tv/users/noahffiliation/history/shows?limit=25', {
-		method: 'GET',
-		headers: TRAKT_HEADER
-	});
-
-	if (!response.ok) {
-		throw new Error('Failed to fetch recent episodes');
-	}
-
+	const response = await fetchTrakt('history/shows?limit=25', 'Failed to fetch recent episodes');
 	return response.json();
 }
 
