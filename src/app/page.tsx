@@ -1,9 +1,9 @@
 'use client'
 
-import { Progress } from '@heroui/react'
 import { useState, useEffect } from 'react'
 import Nav from './components/Nav'
-import { getTraktStats, getWatchlistMovies, getWatchlistShows } from './api/get-data'
+import Progress from './components/Progress'
+import { getTraktStats, getWatchedShows, getWatchlistMovies, getWatchlistShows } from './api/get-data'
 
 export default function Home() {
 	const [movies_watched, setMovies_watched] = useState(0);
@@ -37,8 +37,8 @@ export default function Home() {
 
 	useEffect(() => {
 		const shows_watched = async () => {
-			getTraktStats().then((response) => {
-				setShows_watched(response.shows.watched);
+			getWatchedShows().then((count) => {
+				setShows_watched(count);
 			}).catch((error) => {
 				console.log(error);
 			});
@@ -66,14 +66,16 @@ export default function Home() {
 	const show_progress = total_shows === 0 ? 0 : (shows_watched / total_shows) * 100;
 
 	return (
-		<div>
+		<div className="min-h-screen flex flex-col">
 			<Nav />
 
-			<Progress size='lg' label={`Movie Progress - ${movies_watched} / ${total_movies}`} color='default' showValueLabel value={movie_progress} />
+			<main className="flex-1 flex flex-col items-center justify-center p-6 space-y-4">
+				<Progress label={`Movie Progress - ${movies_watched} / ${total_movies}`} showValueLabel value={movie_progress} />
 
 			<br />
 
-			<Progress size='lg' label={`Show Progress - ${shows_watched} / ${total_shows}`} color='default' showValueLabel value={show_progress} />
+				<Progress label={`Show Progress - ${shows_watched} / ${total_shows}`} showValueLabel value={show_progress} />
+			</main>
 		</div>
 	)
 }

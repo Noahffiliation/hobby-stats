@@ -1,30 +1,17 @@
-import { Navbar, NavbarContent, NavbarItem } from '@heroui/react'
 import Link from 'next/link'
 
 const Nav = () => {
 	return (
-		<Navbar>
-			<NavbarContent>
-				<NavbarItem>
-					<Link href='/'>Home</Link>
-				</NavbarItem>
-				<NavbarItem>
-					<Link href='/movies'>Movie Watchlist</Link>
-				</NavbarItem>
-				<NavbarItem>
-					<Link href='/recent_movies'>Recently Watched Movies</Link>
-				</NavbarItem>
-				<NavbarItem>
-					<Link href='/tv'>TV Watchlist</Link>
-				</NavbarItem>
-				<NavbarItem>
-					<Link href='/recent_episodes'>Recently Watched TV Episodes</Link>
-				</NavbarItem>
-				<NavbarItem>
-					<Link href='/lastfm'>Recent Tracks</Link>
-				</NavbarItem>
-			</NavbarContent>
-		</Navbar>
+		<nav className="w-full border-b border-zinc-800 bg-zinc-900/50 backdrop-blur px-6 py-4 mb-6">
+			<div className="flex flex-wrap items-center justify-center gap-6 text-sm font-bold text-zinc-300">
+				<Link href='/' className="hover:text-white transition-colors">Home</Link>
+				<Link href='/movies' className="hover:text-white transition-colors">Movie Watchlist</Link>
+				<Link href='/recent_movies' className="hover:text-white transition-colors">Recently Watched Movies</Link>
+				<Link href='/tv' className="hover:text-white transition-colors">TV Watchlist</Link>
+				<Link href='/recent_episodes' className="hover:text-white transition-colors">Recently Watched TV Episodes</Link>
+				<Link href='/lastfm' className="hover:text-white transition-colors">Recent Tracks</Link>
+			</div>
+		</nav>
 	)
 }
 

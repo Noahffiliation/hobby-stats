@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import Home from '../page';
-import { getTraktStats, getWatchlistMovies, getWatchlistShows } from '../api/get-data';
+import { getTraktStats, getWatchedShows, getWatchlistMovies, getWatchlistShows } from '../api/get-data';
 
 // Mock dependencies
 jest.mock('../components/Nav', () => {
@@ -11,13 +11,9 @@ jest.mock('../components/Nav', () => {
 
 jest.mock('../api/get-data', () => ({
     getTraktStats: jest.fn(),
+    getWatchedShows: jest.fn(),
     getWatchlistMovies: jest.fn(),
     getWatchlistShows: jest.fn(),
-}));
-
-jest.mock('@heroui/react', () => ({
-    // eslint-disable-next-line react/prop-types
-    Progress: ({ label, value }) => <div data-testid="progress" aria-label={label} data-value={value}>{label}</div>,
 }));
 
 describe('Home Page', () => {
@@ -28,8 +24,8 @@ describe('Home Page', () => {
     it('renders Nav and stats with progress', async () => {
         (getTraktStats as jest.Mock).mockResolvedValue({
             movies: { watched: 100 },
-            shows: { watched: 50 },
         });
+        (getWatchedShows as jest.Mock).mockResolvedValue(50);
         (getWatchlistMovies as jest.Mock).mockResolvedValue(new Array(20)); // length 20
         (getWatchlistShows as jest.Mock).mockResolvedValue(new Array(10)); // length 10
 

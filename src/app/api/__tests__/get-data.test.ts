@@ -1,5 +1,6 @@
 import {
     getTraktStats,
+    getWatchedShows,
     getWatchlistMovies,
     getWatchlistShows,
     getRecentMovies,
@@ -39,13 +40,55 @@ describe('API Utils', () => {
         expect(fetch).toHaveBeenCalledWith('https://api.trakt.tv/users/noahffiliation/stats', expect.any(Object));
     });
 
+    it('getWatchedShows fetches header count successfully', async () => {
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            ok: true,
+            headers: { get: (header: string) => header === 'X-Pagination-Item-Count' ? '504' : null },
+            json: async () => [{ title: 'Show 1' }],
+        });
+
+        const result = await getWatchedShows();
+        expect(result).toBe(504);
+        expect(fetch).toHaveBeenCalledWith('https://api.trakt.tv/users/noahffiliation/watched/shows?limit=1&page=1', expect.any(Object));
+    });
+
+    it('getWatchedShows falls back to array length when header is missing', async () => {
+        mockSuccessResponse([{ title: 'Show 1' }, { title: 'Show 2' }]);
+
+        const result = await getWatchedShows();
+        expect(result).toBe(2);
+    });
+
+    it('getWatchedShows throws error when fetch fails', async () => {
+        mockErrorResponse();
+        await expect(getWatchedShows()).rejects.toThrow('Failed to fetch Trakt watched shows');
+    });
+
     it('getWatchlistMovies fetches data successfully', async () => {
         const mockData = [{ title: 'Movie 1' }];
         mockSuccessResponse(mockData);
 
         const result = await getWatchlistMovies();
         expect(result).toEqual(mockData);
-        expect(fetch).toHaveBeenCalledWith('https://api.trakt.tv/users/noahffiliation/watchlist/movies/released?limit=10000', expect.any(Object));
+        expect(fetch).toHaveBeenCalledWith('https://api.trakt.tv/users/noahffiliation/watchlist/movies/released?limit=250&page=1', expect.any(Object));
+    });
+
+    it('getWatchlistMovies fetches multiple pages when X-Pagination-Page-Count > 1', async () => {
+        (fetch as jest.Mock)
+            .mockResolvedValueOnce({
+                ok: true,
+                headers: { get: (header: string) => header === 'X-Pagination-Page-Count' ? '2' : null },
+                json: async () => [{ title: 'Movie 1' }]
+            })
+            .mockResolvedValueOnce({
+                ok: true,
+                json: async () => [{ title: 'Movie 2' }]
+            });
+
+        const result = await getWatchlistMovies();
+        expect(result).toEqual([{ title: 'Movie 1' }, { title: 'Movie 2' }]);
+        expect(fetch).toHaveBeenNthCalledWith(1, 'https://api.trakt.tv/users/noahffiliation/watchlist/movies/released?limit=250&page=1', expect.any(Object));
+        expect(fetch).toHaveBeenNthCalledWith(2, 'https://api.trakt.tv/users/noahffiliation/watchlist/movies/released?limit=250&page=2', expect.any(Object));
     });
 
     it('getWatchlistShows fetches data successfully', async () => {
@@ -54,7 +97,25 @@ describe('API Utils', () => {
 
         const result = await getWatchlistShows();
         expect(result).toEqual(mockData);
-        expect(fetch).toHaveBeenCalledWith('https://api.trakt.tv/users/noahffiliation/watchlist/shows/released?limit=10000', expect.any(Object));
+        expect(fetch).toHaveBeenCalledWith('https://api.trakt.tv/users/noahffiliation/watchlist/shows/released?limit=250&page=1', expect.any(Object));
+    });
+
+    it('getWatchlistShows fetches multiple pages when X-Pagination-Page-Count > 1', async () => {
+        (fetch as jest.Mock)
+            .mockResolvedValueOnce({
+                ok: true,
+                headers: { get: (header: string) => header === 'X-Pagination-Page-Count' ? '2' : null },
+                json: async () => [{ title: 'Show 1' }]
+            })
+            .mockResolvedValueOnce({
+                ok: true,
+                json: async () => [{ title: 'Show 2' }]
+            });
+
+        const result = await getWatchlistShows();
+        expect(result).toEqual([{ title: 'Show 1' }, { title: 'Show 2' }]);
+        expect(fetch).toHaveBeenNthCalledWith(1, 'https://api.trakt.tv/users/noahffiliation/watchlist/shows/released?limit=250&page=1', expect.any(Object));
+        expect(fetch).toHaveBeenNthCalledWith(2, 'https://api.trakt.tv/users/noahffiliation/watchlist/shows/released?limit=250&page=2', expect.any(Object));
     });
 
     it('getRecentMovies fetches data successfully', async () => {
