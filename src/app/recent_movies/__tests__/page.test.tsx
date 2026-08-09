@@ -1,18 +1,11 @@
-let mockNav: any = function MockNav() {
-    return <div data-testid="nav">Nav Component</div>;
-};
-
 import { render, screen, waitFor } from '@testing-library/react';
-import Home from '../page';
+import RecentMoviesPage from '../page';
 import { getRecentMovies } from '../../api/get-data';
 
 // Mock dependencies
 jest.mock('../../components/Nav', () => {
-    return {
-        __esModule: true,
-        get default() {
-            return mockNav;
-        }
+    return function MockNav() {
+        return <div data-testid="nav">Nav Component</div>;
     };
 });
 
@@ -23,67 +16,62 @@ jest.mock('../../api/get-data', () => ({
 describe('Recent Movies Page', () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        mockNav = function MockNav() {
-            return <div data-testid="nav">Nav Component</div>;
-        };
     });
 
-    it('renders Nav and recent movies', async () => {
+    it('renders loading state and recent movies with and without year', async () => {
         const mockMovies = [
             {
                 id: 1,
                 movie: { title: 'Movie 1', year: 2020 },
                 watched_at: '2023-01-01T12:00:00Z',
             },
+            {
+                id: 2,
+                movie: { title: 'Movie 2' },
+                watched_at: '2023-01-02T12:00:00Z',
+            },
         ];
 
         (getRecentMovies as jest.Mock).mockResolvedValue(mockMovies);
 
-        render(<Home />);
+        render(<RecentMoviesPage />);
 
         expect(screen.getByTestId('nav')).toBeInTheDocument();
+        expect(screen.getByTestId('loading-state')).toBeInTheDocument();
 
         await waitFor(() => {
-            expect(screen.getByText(/Movie 1 \(2020\)/)).toBeInTheDocument();
+            expect(screen.getByText('Movie 1')).toBeInTheDocument();
+            expect(screen.getByText('2020')).toBeInTheDocument();
+            expect(screen.getByText('Movie 2')).toBeInTheDocument();
+            expect(screen.queryByTestId('loading-state')).not.toBeInTheDocument();
         });
     });
 
-    it('logs error when fetch fails', async () => {
+    it('logs error and displays error state when fetch fails', async () => {
         const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
         (getRecentMovies as jest.Mock).mockRejectedValue(new Error('Fetch failed'));
 
-        render(<Home />);
+        render(<RecentMoviesPage />);
 
         await waitFor(() => {
             expect(consoleSpy).toHaveBeenCalledWith(expect.any(Error));
+            expect(screen.getByTestId('error-state')).toHaveTextContent('Unable to load recent movies');
         });
         consoleSpy.mockRestore();
     });
 
-    it('warns when getRecentMovies is not a function', async () => {
-        const consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
-        const { getRecentMovies: original } = require('../../api/get-data');
-        require('../../api/get-data').getRecentMovies = null;
+    it('cleans up safely when unmounted before fetch resolves', async () => {
+        let resolveMovies: (val: any) => void = () => {};
+        (getRecentMovies as jest.Mock).mockImplementation(() => new Promise((res) => { resolveMovies = res; }));
 
-        render(<Home />);
+        const { unmount } = render(<RecentMoviesPage />);
+        expect(screen.getByTestId('loading-state')).toBeInTheDocument();
 
-        await waitFor(() => {
-            expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('getRecentMovies is not a function'));
-        });
+        expect(() => {
+            unmount();
+            resolveMovies([]);
+        }).not.toThrow();
 
-        require('../../api/get-data').getRecentMovies = original;
-        consoleSpy.mockRestore();
-    });
-
-    it('renders null when Nav is invalid', async () => {
-        mockNav = null;
-        (getRecentMovies as jest.Mock).mockResolvedValue([]);
-
-        render(<Home />);
-
-        await waitFor(() => {
-            expect(screen.queryByTestId('nav')).not.toBeInTheDocument();
-            expect(getRecentMovies).toHaveBeenCalled();
-        });
+        expect(screen.queryByTestId('loading-state')).not.toBeInTheDocument();
     });
 });

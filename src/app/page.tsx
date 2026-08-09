@@ -6,76 +6,83 @@ import Progress from './components/Progress'
 import { getTraktStats, getWatchedShows, getWatchlistMovies, getWatchlistShows } from './api/get-data'
 
 export default function Home() {
-	const [movies_watched, setMovies_watched] = useState(0);
-	const [movies_watchlist, setMovies_watchlist] = useState(0);
-	const [shows_watched, setShows_watched] = useState(0);
-	const [shows_watchlist, setShows_watchlist] = useState(0);
+	const [moviesWatched, setMoviesWatched] = useState(0);
+	const [moviesWatchlist, setMoviesWatchlist] = useState(0);
+	const [showsWatched, setShowsWatched] = useState(0);
+	const [showsWatchlist, setShowsWatchlist] = useState(0);
+	const [loading, setLoading] = useState(true);
+	const [error, setError] = useState<string | null>(null);
 
 	useEffect(() => {
-		const movies_watched = async () => {
-			getTraktStats().then((response) => {
-				setMovies_watched(response.movies.watched);
-			}).catch((error) => {
-				console.log(error);
-			});
-		};
+		let isMounted = true;
 
-		movies_watched();
+		async function loadStats() {
+			try {
+				const [stats, watchlistMovies, watchedShows, watchlistShows] = await Promise.all([
+					getTraktStats(),
+					getWatchlistMovies(),
+					getWatchedShows(),
+					getWatchlistShows(),
+				]);
+
+				if (isMounted) {
+					setMoviesWatched(stats.movies.watched);
+					setMoviesWatchlist(watchlistMovies.length);
+					setShowsWatched(watchedShows);
+					setShowsWatchlist(watchlistShows.length);
+					setLoading(false);
+				}
+			} catch (err) {
+				if (isMounted) {
+					console.log(err);
+					setError('Unable to load stats. Please try again later.');
+					setLoading(false);
+				}
+			}
+		}
+
+		loadStats();
+
+		return () => {
+			isMounted = false;
+		};
 	}, []);
 
-	useEffect(() => {
-		const movies_watchlist = async () => {
-			getWatchlistMovies().then((response) => {
-				setMovies_watchlist(response.length);
-			}).catch((error) => {
-				console.log(error);
-			});
-		};
+	const totalMovies = moviesWatched + moviesWatchlist;
+	const totalShows = showsWatched + showsWatchlist;
 
-		movies_watchlist();
-	}, []);
-
-	useEffect(() => {
-		const shows_watched = async () => {
-			getWatchedShows().then((count) => {
-				setShows_watched(count);
-			}).catch((error) => {
-				console.log(error);
-			});
-		};
-
-		shows_watched();
-	}, []);
-
-	useEffect(() => {
-		const shows_watchlist = async () => {
-			getWatchlistShows().then((response) => {
-				setShows_watchlist(response.length);
-			}).catch((error) => {
-				console.log(error);
-			});
-		};
-
-		shows_watchlist();
-	}, [])
-
-	const total_movies = movies_watched + movies_watchlist;
-	const total_shows = shows_watched + shows_watchlist;
-
-	const movie_progress = total_movies === 0 ? 0 : (movies_watched / total_movies) * 100;
-	const show_progress = total_shows === 0 ? 0 : (shows_watched / total_shows) * 100;
+	const movieProgress = totalMovies === 0 ? 0 : (moviesWatched / totalMovies) * 100;
+	const showProgress = totalShows === 0 ? 0 : (showsWatched / totalShows) * 100;
 
 	return (
-		<div className="min-h-screen flex flex-col">
+		<div className="min-h-screen flex flex-col bg-zinc-950 text-zinc-100">
 			<Nav />
 
-			<main className="flex-1 flex flex-col items-center justify-center p-6 space-y-4">
-				<Progress label={`Movie Progress - ${movies_watched} / ${total_movies}`} showValueLabel value={movie_progress} />
+			<main className="flex-1 flex flex-col items-center justify-center p-6 space-y-6 max-w-4xl mx-auto w-full">
+				<div className="text-center mb-2">
+					<h1 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">Media Progress Dashboard</h1>
+					<p className="mt-2 text-sm text-zinc-400">Tracking watched vs. watchlist progress across movies and TV series.</p>
+				</div>
 
-			<br />
+				{loading && (
+					<div data-testid="loading-state" className="w-full max-w-2xl py-12 text-center text-zinc-400 animate-pulse">
+						Loading stats...
+					</div>
+				)}
 
-				<Progress label={`Show Progress - ${shows_watched} / ${total_shows}`} showValueLabel value={show_progress} />
+				{error && (
+					<div data-testid="error-state" className="w-full max-w-2xl p-4 rounded-xl bg-red-950/40 border border-red-800/60 text-red-300 text-center text-sm">
+						{error}
+					</div>
+				)}
+
+				{!loading && !error && (
+					<div className="w-full max-w-2xl space-y-8 bg-zinc-900/50 p-6 rounded-2xl border border-zinc-800/80 backdrop-blur">
+						<Progress label={`Movie Progress - ${moviesWatched} / ${totalMovies}`} showValueLabel value={movieProgress} />
+						<Progress label={`Show Progress - ${showsWatched} / ${totalShows}`} showValueLabel value={showProgress} />
+					</div>
+				)}
 			</main>
 		</div>
-	)
+	);
 }

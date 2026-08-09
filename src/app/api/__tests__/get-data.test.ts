@@ -18,7 +18,7 @@ describe('API Utils', () => {
         process.env.NEXT_PUBLIC_LASTFM_API_KEY = 'mock-lastfm-key';
     });
 
-    const mockSuccessResponse = (data) => {
+    const mockSuccessResponse = (data: unknown) => {
         (fetch as jest.Mock).mockResolvedValueOnce({
             ok: true,
             json: async () => data,
@@ -40,6 +40,15 @@ describe('API Utils', () => {
         expect(fetch).toHaveBeenCalledWith('https://api.trakt.tv/users/noahffiliation/stats', expect.any(Object));
     });
 
+    it('getTraktStats handles missing API key env var', async () => {
+        delete process.env.NEXT_PUBLIC_TRAKT_API_KEY;
+        const mockData = { stats: 'some stats' };
+        mockSuccessResponse(mockData);
+
+        const result = await getTraktStats();
+        expect(result).toEqual(mockData);
+    });
+
     it('getWatchedShows fetches header count successfully', async () => {
         (fetch as jest.Mock).mockResolvedValueOnce({
             ok: true,
@@ -57,6 +66,16 @@ describe('API Utils', () => {
 
         const result = await getWatchedShows();
         expect(result).toBe(2);
+    });
+
+    it('getWatchedShows handles missing headers object', async () => {
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            ok: true,
+            json: async () => [{ title: 'Show 1' }],
+        });
+
+        const result = await getWatchedShows();
+        expect(result).toBe(1);
     });
 
     it('getWatchedShows throws error when fetch fails', async () => {
@@ -89,6 +108,30 @@ describe('API Utils', () => {
         expect(result).toEqual([{ title: 'Movie 1' }, { title: 'Movie 2' }]);
         expect(fetch).toHaveBeenNthCalledWith(1, 'https://api.trakt.tv/users/noahffiliation/watchlist/movies/released?limit=250&page=1', expect.any(Object));
         expect(fetch).toHaveBeenNthCalledWith(2, 'https://api.trakt.tv/users/noahffiliation/watchlist/movies/released?limit=250&page=2', expect.any(Object));
+    });
+
+    it('getWatchlistMovies throws error when subsequent pagination fetch fails', async () => {
+        (fetch as jest.Mock)
+            .mockResolvedValueOnce({
+                ok: true,
+                headers: { get: (header: string) => header === 'X-Pagination-Page-Count' ? '2' : null },
+                json: async () => [{ title: 'Movie 1' }]
+            })
+            .mockResolvedValueOnce({
+                ok: false,
+            });
+
+        await expect(getWatchlistMovies()).rejects.toThrow('Failed to fetch Trakt movie watchlist');
+    });
+
+    it('getWatchlistMovies handles missing headers object', async () => {
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            ok: true,
+            json: async () => [{ title: 'Movie 1' }],
+        });
+
+        const result = await getWatchlistMovies();
+        expect(result).toEqual([{ title: 'Movie 1' }]);
     });
 
     it('getWatchlistShows fetches data successfully', async () => {
@@ -143,6 +186,16 @@ describe('API Utils', () => {
         const result = await getLastFm();
         expect(result).toEqual(mockData);
         expect(fetch).toHaveBeenCalledWith(expect.stringContaining('ws.audioscrobbler.com'), expect.objectContaining({ method: 'GET' }));
+    });
+
+    it('getLastFm handles missing API key env var', async () => {
+        delete process.env.NEXT_PUBLIC_LASTFM_API_KEY;
+        const mockData = { recenttracks: { track: [] } };
+        mockSuccessResponse(mockData);
+
+        const result = await getLastFm();
+        expect(result).toEqual(mockData);
+        expect(fetch).toHaveBeenCalledWith(expect.stringContaining('api_key=&'), expect.any(Object));
     });
 
     it('getTraktStats throws error when fetch fails', async () => {

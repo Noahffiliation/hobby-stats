@@ -1,37 +1,84 @@
 'use client'
 
-import { useEffect, useState } from "react";
-import Nav from "../components/Nav";
-import { getWatchlistShows } from "../api/get-data";
+import { useEffect, useState } from 'react';
+import Nav from '../components/Nav';
+import { getWatchlistShows, type TraktWatchlistShow } from '../api/get-data';
 
-export default function Home() {
-	const [tv, setTv] = useState([]);
+export default function TvPage() {
+	const [shows, setShows] = useState<TraktWatchlistShow[]>([]);
+	const [loading, setLoading] = useState(true);
+	const [error, setError] = useState<string | null>(null);
 
 	useEffect(() => {
-		const fetchTv = async () => {
-			getWatchlistShows().then((response) => {
-				setTv(response.reverse());
-			}).catch((error) => {
-				console.log(error);
-			});
-		};
+		let isMounted = true;
+
+		async function fetchTv() {
+			try {
+				const response = await getWatchlistShows();
+				if (isMounted) {
+					setShows(response.toReversed());
+					setLoading(false);
+				}
+			} catch (err) {
+				if (isMounted) {
+					console.log(err);
+					setError('Unable to load TV watchlist. Please try again later.');
+					setLoading(false);
+				}
+			}
+		}
 
 		fetchTv();
+
+		return () => {
+			isMounted = false;
+		};
 	}, []);
 
 	return (
-		<div>
+		<div className="min-h-screen flex flex-col bg-zinc-950 text-zinc-100">
 			<Nav />
 
-			<ul>
-				{tv.map((tv) => (
-					<li key={tv.id}>
-						{tv.show.title}
-						{tv.show.year ? ` - ${tv.show.year}` : ''}
-						<br />
-					</li>
-				))}
-			</ul>
+			<main className="flex-1 max-w-4xl mx-auto w-full px-6 py-8">
+				<header className="mb-8">
+					<h1 className="text-3xl font-extrabold tracking-tight text-white">TV Watchlist</h1>
+					<p className="mt-1 text-sm text-zinc-400">TV shows queued up to watch on Trakt.</p>
+				</header>
+
+				{loading && (
+					<div data-testid="loading-state" className="py-12 text-center text-zinc-400 animate-pulse">
+						Loading TV watchlist...
+					</div>
+				)}
+
+				{error && (
+					<div data-testid="error-state" className="p-4 rounded-xl bg-red-950/40 border border-red-800/60 text-red-300 text-center text-sm">
+						{error}
+					</div>
+				)}
+
+				{!loading && !error && (
+					<ul className="space-y-3">
+						{shows.map((item, idx) => {
+							const key = item.id || `${item.show.title}-${item.show.year || ''}-${idx}`;
+
+							return (
+								<li
+									key={key}
+									className="flex items-center justify-between p-4 rounded-xl bg-zinc-900/60 border border-zinc-800/80 hover:border-zinc-700 transition"
+								>
+									<span className="font-semibold text-zinc-100">{item.show.title}</span>
+									{item.show.year && (
+										<span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-zinc-800 text-zinc-300 border border-zinc-700">
+											{item.show.year}
+										</span>
+									)}
+								</li>
+							);
+						})}
+					</ul>
+				)}
+			</main>
 		</div>
 	);
 }

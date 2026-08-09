@@ -21,7 +21,7 @@ describe('Home Page', () => {
         jest.clearAllMocks();
     });
 
-    it('renders Nav and stats with progress', async () => {
+    it('renders loading state then progress bars upon data load', async () => {
         (getTraktStats as jest.Mock).mockResolvedValue({
             movies: { watched: 100 },
         });
@@ -32,14 +32,67 @@ describe('Home Page', () => {
         render(<Home />);
 
         expect(screen.getByTestId('nav')).toBeInTheDocument();
+        expect(screen.getByTestId('loading-state')).toBeInTheDocument();
 
         await waitFor(() => {
-            // Movies: 100 watched, 20 watchlist. Total 120. Progress ~83.33%
-            // Shows: 50 watched, 10 watchlist. Total 60. Progress ~83.33%
             const progresses = screen.getAllByTestId('progress');
             expect(progresses).toHaveLength(2);
-            expect(progresses[0]).toHaveTextContent(/Movie Progress/);
-            expect(progresses[1]).toHaveTextContent(/Show Progress/);
+            expect(progresses[0]).toHaveTextContent(/Movie Progress - 100 \/ 120/);
+            expect(progresses[1]).toHaveTextContent(/Show Progress - 50 \/ 60/);
+            expect(screen.queryByTestId('loading-state')).not.toBeInTheDocument();
         });
+    });
+
+    it('handles 0 total movies and 0 total shows without division by zero', async () => {
+        (getTraktStats as jest.Mock).mockResolvedValue({
+            movies: { watched: 0 },
+        });
+        (getWatchedShows as jest.Mock).mockResolvedValue(0);
+        (getWatchlistMovies as jest.Mock).mockResolvedValue([]);
+        (getWatchlistShows as jest.Mock).mockResolvedValue([]);
+
+        render(<Home />);
+
+        await waitFor(() => {
+            const progresses = screen.getAllByTestId('progress');
+            expect(progresses).toHaveLength(2);
+            expect(progresses[0]).toHaveTextContent(/Movie Progress - 0 \/ 0/);
+            expect(progresses[1]).toHaveTextContent(/Show Progress - 0 \/ 0/);
+        });
+    });
+
+    it('handles and displays error state when API calls fail', async () => {
+        const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
+        (getTraktStats as jest.Mock).mockRejectedValue(new Error('Trakt stats failed'));
+        (getWatchedShows as jest.Mock).mockResolvedValue(0);
+        (getWatchlistMovies as jest.Mock).mockResolvedValue([]);
+        (getWatchlistShows as jest.Mock).mockResolvedValue([]);
+
+        render(<Home />);
+
+        await waitFor(() => {
+            expect(consoleSpy).toHaveBeenCalledWith(expect.any(Error));
+            expect(screen.getByTestId('error-state')).toHaveTextContent('Unable to load stats');
+        });
+
+        consoleSpy.mockRestore();
+    });
+
+    it('cleans up safely when unmounted before fetch resolves', async () => {
+        let resolveStats: (val: any) => void = () => {};
+        (getTraktStats as jest.Mock).mockImplementation(() => new Promise((res) => { resolveStats = res; }));
+        (getWatchedShows as jest.Mock).mockResolvedValue(0);
+        (getWatchlistMovies as jest.Mock).mockResolvedValue([]);
+        (getWatchlistShows as jest.Mock).mockResolvedValue([]);
+
+        const { unmount } = render(<Home />);
+        expect(screen.getByTestId('loading-state')).toBeInTheDocument();
+
+        expect(() => {
+            unmount();
+            resolveStats({ movies: { watched: 10 } });
+        }).not.toThrow();
+
+        expect(screen.queryByTestId('loading-state')).not.toBeInTheDocument();
     });
 });

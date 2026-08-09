@@ -1,45 +1,85 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react';
 import Nav from '../components/Nav';
-import { getRecentMovies } from '../api/get-data';
+import { getRecentMovies, type TraktRecentMovie } from '../api/get-data';
 
-export default function Home() {
-	const [movies, setMovies] = useState([]);
-
-	// helper to detect valid React component (function/class/object)
-	const isValidComponent = (Comp) => Comp && (typeof Comp === 'function' || typeof Comp === 'object');
+export default function RecentMoviesPage() {
+	const [movies, setMovies] = useState<TraktRecentMovie[]>([]);
+	const [loading, setLoading] = useState(true);
+	const [error, setError] = useState<string | null>(null);
 
 	useEffect(() => {
-		const fetchMovies = async () => {
-			if (typeof getRecentMovies !== 'function') {
-				console.warn('getRecentMovies is not a function — check your export/import.');
-				return;
-			}
+		let isMounted = true;
 
-			getRecentMovies().then((response) => {
-				setMovies(response);
-			}).catch((error) => {
-				console.log(error);
-			});
-		};
+		async function fetchMovies() {
+			try {
+				const response = await getRecentMovies();
+				if (isMounted) {
+					setMovies(response);
+					setLoading(false);
+				}
+			} catch (err) {
+				if (isMounted) {
+					console.log(err);
+					setError('Unable to load recent movies. Please try again later.');
+					setLoading(false);
+				}
+			}
+		}
 
 		fetchMovies();
+
+		return () => {
+			isMounted = false;
+		};
 	}, []);
 
 	return (
-		<div>
-			{/* render Nav only if it's a valid component to avoid "Element type is invalid" */}
-			{isValidComponent(Nav) ? <Nav /> : null}
+		<div className="min-h-screen flex flex-col bg-zinc-950 text-zinc-100">
+			<Nav />
 
-			<ul>
-				{movies.map((movie) => (
-					<li key={movie.id}>
-						{movie.movie.title} ({movie.movie.year}) - {new Date(movie.watched_at).toLocaleString()}
-						<br />
-					</li>
-				))}
-			</ul>
+			<main className="flex-1 max-w-4xl mx-auto w-full px-6 py-8">
+				<header className="mb-8">
+					<h1 className="text-3xl font-extrabold tracking-tight text-white">Recently Watched Movies</h1>
+					<p className="mt-1 text-sm text-zinc-400">History of movies recently watched on Trakt.</p>
+				</header>
+
+				{loading && (
+					<div data-testid="loading-state" className="py-12 text-center text-zinc-400 animate-pulse">
+						Loading recent movies...
+					</div>
+				)}
+
+				{error && (
+					<div data-testid="error-state" className="p-4 rounded-xl bg-red-950/40 border border-red-800/60 text-red-300 text-center text-sm">
+						{error}
+					</div>
+				)}
+
+				{!loading && !error && (
+					<ul className="space-y-3">
+						{movies.map((item) => (
+							<li
+								key={item.id}
+								className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-xl bg-zinc-900/60 border border-zinc-800/80 hover:border-zinc-700 transition gap-2"
+							>
+								<div className="flex items-center space-x-2">
+									<span className="font-semibold text-zinc-100">{item.movie.title}</span>
+									{item.movie.year && (
+										<span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-zinc-800 text-zinc-300 border border-zinc-700">
+											{item.movie.year}
+										</span>
+									)}
+								</div>
+								<time className="text-xs text-zinc-400 font-mono">
+									{new Date(item.watched_at).toLocaleString()}
+								</time>
+							</li>
+						))}
+					</ul>
+				)}
+			</main>
 		</div>
-	)
+	);
 }
