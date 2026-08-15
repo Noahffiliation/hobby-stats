@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import Nav from '../components/Nav';
+import TabNav, { type TabItem } from '../components/TabNav';
+import StatusFeedback from '../components/StatusFeedback';
 import { getDramaList, type DramaItem } from '../api/get-data';
 
 export default function DramasPage() {
@@ -44,8 +46,10 @@ export default function DramasPage() {
 		};
 	}, []);
 
-	const ptwLabel = totalPlanToWatch !== null ? `Plan to Watch (${totalPlanToWatch})` : 'Plan to Watch';
-	const compLabel = totalCompleted !== null ? `Completed (${totalCompleted})` : 'Completed';
+	const tabs: TabItem<'planToWatch' | 'completed'>[] = [
+		{ id: 'planToWatch', label: 'Plan to Watch', count: totalPlanToWatch ?? undefined },
+		{ id: 'completed', label: 'Completed', count: totalCompleted ?? undefined },
+	];
 
 	return (
 		<div className="min-h-screen w-full flex flex-col items-center bg-zinc-950 text-zinc-100">
@@ -57,46 +61,9 @@ export default function DramasPage() {
 					<p className="mt-1 text-sm text-zinc-400">Tracked drama watchlist and completed history on MyDramaList.</p>
 				</header>
 
-				<div role="tablist" className="flex justify-center gap-2 mb-6 border-b border-zinc-800 pb-3 w-full max-w-2xl">
-					<button
-						type="button"
-						role="tab"
-						aria-selected={activeTab === 'planToWatch'}
-						onClick={() => setActiveTab('planToWatch')}
-						className={`px-4 py-2 rounded-xl text-sm font-semibold transition ${
-							activeTab === 'planToWatch'
-								? 'bg-zinc-800 text-white shadow-sm'
-								: 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/50'
-						}`}
-					>
-						{ptwLabel}
-					</button>
-					<button
-						type="button"
-						role="tab"
-						aria-selected={activeTab === 'completed'}
-						onClick={() => setActiveTab('completed')}
-						className={`px-4 py-2 rounded-xl text-sm font-semibold transition ${
-							activeTab === 'completed'
-								? 'bg-zinc-800 text-white shadow-sm'
-								: 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/50'
-						}`}
-					>
-						{compLabel}
-					</button>
-				</div>
+				<TabNav tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
 
-				{loading && (
-					<div data-testid="loading-state" className="w-full max-w-2xl py-12 text-center text-zinc-400 animate-pulse">
-						Loading K-dramas...
-					</div>
-				)}
-
-				{error && (
-					<div data-testid="error-state" className="w-full max-w-2xl p-4 rounded-xl bg-red-950/40 border border-red-800/60 text-red-300 text-center text-sm">
-						{error}
-					</div>
-				)}
+				<StatusFeedback loading={loading} loadingMessage="Loading K-dramas..." error={error} />
 
 				{!loading && !error && activeTab === 'planToWatch' && (
 					planToWatch.length === 0 ? (

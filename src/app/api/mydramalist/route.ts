@@ -1,84 +1,8 @@
-import { execFile } from 'node:child_process';
+import { COMPLETED_REGEX, fetchMdlHtml, getMdlUsername, PTW_REGEX } from './utils';
 
 export const revalidate = 3600;
 
-export function getMdlUsername(): string {
-	return process.env.NEXT_PUBLIC_MDL_USERNAME || 'Noahffiliation';
-}
-
-export function getCurlBin(): string {
-	return process.platform === 'win32' ? String.raw`C:\Windows\System32\curl.exe` : '/usr/bin/curl';
-}
-
-const COMPLETED_REGEX = /Completed[^(]*\(([\d,]+)\)/i;
-const PTW_REGEX = /Plan to Watch[^(]*\(([\d,]+)\)/i;
-
-async function fetchMdlHtml(url: string, postJson?: { page: number; username: string }): Promise<string | null> {
-	try {
-		const response = await fetch(url, {
-			method: postJson ? 'POST' : 'GET',
-			headers: {
-				'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-				Accept: postJson ? 'text/html, */*; q=0.01' : 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-				...(postJson ? { 'X-Requested-With': 'XMLHttpRequest', 'Content-Type': 'application/json' } : {}),
-			},
-			...(postJson ? { body: JSON.stringify(postJson) } : {}),
-		});
-
-		if (response.ok) {
-			const text = await response.text();
-			if (!text.includes('Just a moment...')) {
-				return text;
-			}
-		}
-	} catch {
-		// Ignore and try fallback below
-	}
-
-	return new Promise<string | null>((resolve) => {
-		try {
-			const args = [
-				'-s',
-				'-A',
-				'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-				'-H',
-				postJson ? 'Accept: text/html, */*; q=0.01' : 'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-				'-H',
-				'Accept-Language: en-US,en;q=0.9',
-			];
-
-			if (postJson) {
-				args.push(
-					'-H',
-					'X-Requested-With: XMLHttpRequest',
-					'-H',
-					'Content-Type: application/json',
-					'-X',
-					'POST',
-					'-d',
-					JSON.stringify(postJson)
-				);
-			}
-
-			args.push(url);
-
-			execFile(
-				getCurlBin(),
-				args,
-				{ maxBuffer: 20 * 1024 * 1024 },
-				(error, stdout) => {
-					if (error || !stdout || stdout.includes('Just a moment...')) {
-						resolve(null);
-					} else {
-						resolve(stdout);
-					}
-				}
-			);
-		} catch {
-			resolve(null);
-		}
-	});
-}
+export { getCurlBin, getMdlUsername } from './utils';
 
 function countRows(html: string): number {
 	return [...html.matchAll(/<tr id="ml\d+">/gi)].length;

@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import Nav from '../components/Nav';
+import TabNav, { type TabItem } from '../components/TabNav';
+import StatusFeedback from '../components/StatusFeedback';
 import {
 	getRecentMovies,
 	getWatchlistMovies,
@@ -47,6 +49,11 @@ export default function MoviesPage() {
 		};
 	}, []);
 
+	const tabs: TabItem<'watchlist' | 'recent'>[] = [
+		{ id: 'watchlist', label: 'Watchlist', count: watchlist.length },
+		{ id: 'recent', label: 'Recently Watched', count: recent.length },
+	];
+
 	return (
 		<div className="min-h-screen w-full flex flex-col items-center bg-zinc-950 text-zinc-100">
 			<Nav />
@@ -57,46 +64,9 @@ export default function MoviesPage() {
 					<p className="mt-1 text-sm text-zinc-400">Tracked movie watchlist and recent viewing history on Trakt.</p>
 				</header>
 
-				<div role="tablist" className="flex justify-center gap-2 mb-6 border-b border-zinc-800 pb-3 w-full max-w-2xl">
-					<button
-						type="button"
-						role="tab"
-						aria-selected={activeTab === 'watchlist'}
-						onClick={() => setActiveTab('watchlist')}
-						className={`px-4 py-2 rounded-xl text-sm font-semibold transition ${
-							activeTab === 'watchlist'
-								? 'bg-zinc-800 text-white shadow-sm'
-								: 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/50'
-						}`}
-					>
-						Watchlist ({watchlist.length})
-					</button>
-					<button
-						type="button"
-						role="tab"
-						aria-selected={activeTab === 'recent'}
-						onClick={() => setActiveTab('recent')}
-						className={`px-4 py-2 rounded-xl text-sm font-semibold transition ${
-							activeTab === 'recent'
-								? 'bg-zinc-800 text-white shadow-sm'
-								: 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/50'
-						}`}
-					>
-						Recently Watched ({recent.length})
-					</button>
-				</div>
+				<TabNav tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
 
-				{loading && (
-					<div data-testid="loading-state" className="w-full max-w-2xl py-12 text-center text-zinc-400 animate-pulse">
-						Loading movies...
-					</div>
-				)}
-
-				{error && (
-					<div data-testid="error-state" className="w-full max-w-2xl p-4 rounded-xl bg-red-950/40 border border-red-800/60 text-red-300 text-center text-sm">
-						{error}
-					</div>
-				)}
+				<StatusFeedback loading={loading} loadingMessage="Loading movies..." error={error} />
 
 				{!loading && !error && activeTab === 'watchlist' && (
 					<ul className="w-full max-w-2xl space-y-3">
