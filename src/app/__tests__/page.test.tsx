@@ -1,6 +1,14 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import Home from '../page';
-import { getTraktStats, getWatchedShows, getWatchlistMovies, getWatchlistShows } from '../api/get-data';
+import {
+    getBackloggdStats,
+    getMyAnimeListStats,
+    getMyDramaListStats,
+    getTraktStats,
+    getWatchedShows,
+    getWatchlistMovies,
+    getWatchlistShows,
+} from '../api/get-data';
 
 // Mock dependencies
 jest.mock('../components/Nav', () => {
@@ -14,6 +22,9 @@ jest.mock('../api/get-data', () => ({
     getWatchedShows: jest.fn(),
     getWatchlistMovies: jest.fn(),
     getWatchlistShows: jest.fn(),
+    getBackloggdStats: jest.fn(),
+    getMyAnimeListStats: jest.fn(),
+    getMyDramaListStats: jest.fn(),
 }));
 
 describe('Home Page', () => {
@@ -28,6 +39,9 @@ describe('Home Page', () => {
         (getWatchedShows as jest.Mock).mockResolvedValue(50);
         (getWatchlistMovies as jest.Mock).mockResolvedValue(new Array(20)); // length 20
         (getWatchlistShows as jest.Mock).mockResolvedValue(new Array(10)); // length 10
+        (getBackloggdStats as jest.Mock).mockResolvedValue({ played: 280, backlog: 240 });
+        (getMyAnimeListStats as jest.Mock).mockResolvedValue({ completed: 350, planToWatch: 320 });
+        (getMyDramaListStats as jest.Mock).mockResolvedValue({ completed: 200, planToWatch: 230 });
 
         render(<Home />);
 
@@ -36,28 +50,37 @@ describe('Home Page', () => {
 
         await waitFor(() => {
             const progresses = screen.getAllByTestId('progress');
-            expect(progresses).toHaveLength(2);
-            expect(progresses[0]).toHaveTextContent(/Movie Progress - 100 \/ 120/);
-            expect(progresses[1]).toHaveTextContent(/Show Progress - 50 \/ 60/);
+            expect(progresses).toHaveLength(5);
+            expect(progresses[0]).toHaveTextContent(/Game Progress - 280 \/ 520/);
+            expect(progresses[1]).toHaveTextContent(/Movie Progress - 100 \/ 120/);
+            expect(progresses[2]).toHaveTextContent(/Show Progress - 50 \/ 60/);
+            expect(progresses[3]).toHaveTextContent(/Anime Progress - 350 \/ 670/);
+            expect(progresses[4]).toHaveTextContent(/K-Drama Progress - 200 \/ 430/);
             expect(screen.queryByTestId('loading-state')).not.toBeInTheDocument();
         });
     });
 
-    it('handles 0 total movies and 0 total shows without division by zero', async () => {
+    it('handles 0 totals without division by zero', async () => {
         (getTraktStats as jest.Mock).mockResolvedValue({
             movies: { watched: 0 },
         });
         (getWatchedShows as jest.Mock).mockResolvedValue(0);
         (getWatchlistMovies as jest.Mock).mockResolvedValue([]);
         (getWatchlistShows as jest.Mock).mockResolvedValue([]);
+        (getBackloggdStats as jest.Mock).mockResolvedValue({ played: 0, backlog: 0 });
+        (getMyAnimeListStats as jest.Mock).mockResolvedValue({ completed: 0, planToWatch: 0 });
+        (getMyDramaListStats as jest.Mock).mockResolvedValue({ completed: 0, planToWatch: 0 });
 
         render(<Home />);
 
         await waitFor(() => {
             const progresses = screen.getAllByTestId('progress');
-            expect(progresses).toHaveLength(2);
-            expect(progresses[0]).toHaveTextContent(/Movie Progress - 0 \/ 0/);
-            expect(progresses[1]).toHaveTextContent(/Show Progress - 0 \/ 0/);
+            expect(progresses).toHaveLength(5);
+            expect(progresses[0]).toHaveTextContent(/Game Progress - 0 \/ 0/);
+            expect(progresses[1]).toHaveTextContent(/Movie Progress - 0 \/ 0/);
+            expect(progresses[2]).toHaveTextContent(/Show Progress - 0 \/ 0/);
+            expect(progresses[3]).toHaveTextContent(/Anime Progress - 0 \/ 0/);
+            expect(progresses[4]).toHaveTextContent(/K-Drama Progress - 0 \/ 0/);
         });
     });
 
@@ -67,6 +90,9 @@ describe('Home Page', () => {
         (getWatchedShows as jest.Mock).mockResolvedValue(0);
         (getWatchlistMovies as jest.Mock).mockResolvedValue([]);
         (getWatchlistShows as jest.Mock).mockResolvedValue([]);
+        (getBackloggdStats as jest.Mock).mockResolvedValue({ played: 0, backlog: 0 });
+        (getMyAnimeListStats as jest.Mock).mockResolvedValue({ completed: 0, planToWatch: 0 });
+        (getMyDramaListStats as jest.Mock).mockResolvedValue({ completed: 0, planToWatch: 0 });
 
         render(<Home />);
 
@@ -84,6 +110,9 @@ describe('Home Page', () => {
         (getWatchedShows as jest.Mock).mockResolvedValue(0);
         (getWatchlistMovies as jest.Mock).mockResolvedValue([]);
         (getWatchlistShows as jest.Mock).mockResolvedValue([]);
+        (getBackloggdStats as jest.Mock).mockResolvedValue({ played: 0, backlog: 0 });
+        (getMyAnimeListStats as jest.Mock).mockResolvedValue({ completed: 0, planToWatch: 0 });
+        (getMyDramaListStats as jest.Mock).mockResolvedValue({ completed: 0, planToWatch: 0 });
 
         const { unmount } = render(<Home />);
         expect(screen.getByTestId('loading-state')).toBeInTheDocument();
@@ -96,3 +125,4 @@ describe('Home Page', () => {
         expect(screen.queryByTestId('loading-state')).not.toBeInTheDocument();
     });
 });
+

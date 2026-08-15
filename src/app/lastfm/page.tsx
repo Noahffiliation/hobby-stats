@@ -36,29 +36,29 @@ export default function LastFmPage() {
 	}, []);
 
 	return (
-		<div className="min-h-screen flex flex-col bg-zinc-950 text-zinc-100">
+		<div className="min-h-screen w-full flex flex-col items-center bg-zinc-950 text-zinc-100">
 			<Nav />
 
-			<main className="flex-1 max-w-4xl mx-auto w-full px-6 py-8">
-				<header className="mb-8">
+			<main className="flex-1 max-w-4xl mx-auto w-full px-6 py-8 flex flex-col items-center justify-center text-center">
+				<header className="mb-8 text-center">
 					<h1 className="text-3xl font-extrabold tracking-tight text-white">Recent Tracks</h1>
 					<p className="mt-1 text-sm text-zinc-400">Recently scrobbled music on Last.fm.</p>
 				</header>
 
 				{loading && (
-					<div data-testid="loading-state" className="py-12 text-center text-zinc-400 animate-pulse">
+					<div data-testid="loading-state" className="w-full max-w-2xl py-12 text-center text-zinc-400 animate-pulse">
 						Loading recent tracks...
 					</div>
 				)}
 
 				{error && (
-					<div data-testid="error-state" className="p-4 rounded-xl bg-red-950/40 border border-red-800/60 text-red-300 text-center text-sm">
+					<div data-testid="error-state" className="w-full max-w-2xl p-4 rounded-xl bg-red-950/40 border border-red-800/60 text-red-300 text-center text-sm">
 						{error}
 					</div>
 				)}
 
 				{!loading && !error && (
-					<ul className="space-y-3">
+					<ul className="w-full max-w-2xl space-y-3">
 						{tracks.map((track, idx) => {
 							const key = `${track.mbid || track.name}-${idx}`;
 
