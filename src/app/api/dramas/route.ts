@@ -22,11 +22,11 @@ export interface DramaListResponse {
 
 function decodeHtmlEntities(str: string): string {
 	return str
-		.replaceAll('&amp;', '&')
 		.replaceAll('&lt;', '<')
 		.replaceAll('&gt;', '>')
 		.replaceAll('&quot;', '"')
-		.replaceAll('&#39;', "'");
+		.replaceAll('&#39;', "'")
+		.replaceAll('&amp;', '&');
 }
 
 export function parseSingleDramaRow(rowHtml: string): DramaItem | null {
