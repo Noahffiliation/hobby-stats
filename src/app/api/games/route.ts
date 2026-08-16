@@ -24,8 +24,8 @@ const BACKLOG_REGEX = /href="\/u\/[^/]+\/backlog\/[^"]*"[^>]*>\s*<h\d+>\s*([0-9,
 function cleanGameTitle(raw: string): string {
 	return raw
 		.replaceAll('&#39;', "'")
-		.replaceAll('&amp;', '&')
 		.replaceAll('&quot;', '"')
+		.replaceAll('&amp;', '&')
 		.trim();
 }
 
