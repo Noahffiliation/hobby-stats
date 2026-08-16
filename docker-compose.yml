@@ -1,0 +1,9 @@
+services:
+  hobby-stats:
+    build: .
+    container_name: hobby-stats
+    restart: unless-stopped
+    ports:
+      - "3001:3000"
+    env_file:
+      - .env

@@ -4,10 +4,40 @@ updates:
     directory: "/"
     schedule:
       interval: "daily"
-    open-pull-requests-limit: 10
+    commit-message:
+      prefix: "deps:"
+    labels:
+      - "dependencies"
+      - "javascript"
+    groups:
+      npm-dependencies:
+        patterns:
+          - "*"
+
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    commit-message:
+      prefix: "docker:"
+    labels:
+      - "dependencies"
+      - "docker"
+    groups:
+      docker-dependencies:
+        patterns:
+          - "*"
 
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "daily"
-    open-pull-requests-limit: 10
+    commit-message:
+      prefix: "ci:"
+    labels:
+      - "dependencies"
+      - "ci/cd"
+    groups:
+      github-actions:
+        patterns:
+          - "*"
