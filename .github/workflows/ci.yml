@@ -31,7 +31,7 @@ jobs:
       contents: read
       packages: write
       security-events: write
-    uses: Noahffiliation/.github/.github/workflows/reusable-node-ci.yml@8fc2aeb365746be4ee0cb99c72edd75e4a0527b7
+    uses: Noahffiliation/.github/.github/workflows/reusable-node-ci.yml@main
     with:
       node-version: "24.19.0"
       run-build: true
