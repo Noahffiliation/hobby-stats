@@ -31,10 +31,11 @@ jobs:
       contents: read
       packages: write
       security-events: write
-    uses: Noahffiliation/.github/.github/workflows/reusable-node-ci.yml@main
+    uses: Noahffiliation/.github/.github/workflows/reusable-node-ci.yml@8fc2aeb365746be4ee0cb99c72edd75e4a0527b7
     with:
       node-version: "24.19.0"
       run-build: true
       build-output-dir: ".next"
       test-docker: true
-    secrets: inherit
+    secrets:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
