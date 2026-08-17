@@ -14,6 +14,7 @@ RUN npm run build
 
 # Stage 3: Production runner
 FROM node:24-alpine3.21 AS runner
+RUN apk upgrade --no-cache
 WORKDIR /app
 
 ENV NODE_ENV=production
