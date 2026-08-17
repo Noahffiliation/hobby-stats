@@ -20,11 +20,21 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
+permissions:
+  contents: read
+  packages: write
+  security-events: write
+
 jobs:
   node-ci:
+    permissions:
+      contents: read
+      packages: write
+      security-events: write
     uses: Noahffiliation/.github/.github/workflows/reusable-node-ci.yml@main
     with:
       node-version: "24.19.0"
       run-build: true
       build-output-dir: ".next"
+      test-docker: true
     secrets: inherit
