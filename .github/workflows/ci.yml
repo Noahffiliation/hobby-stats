@@ -27,6 +27,10 @@ permissions:
 
 jobs:
   node-ci:
+    permissions:
+      contents: read
+      packages: write
+      security-events: write
     uses: Noahffiliation/.github/.github/workflows/reusable-node-ci.yml@main
     with:
       node-version: "24.19.0"
