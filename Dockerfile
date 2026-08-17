@@ -14,7 +14,14 @@ RUN npm run build
 
 # Stage 3: Production runner
 FROM node:24-alpine3.21 AS runner
-RUN apk upgrade --no-cache
+RUN apk upgrade --no-cache && \
+    rm -rf \
+      /usr/local/lib/node_modules \
+      /usr/local/bin/npm \
+      /usr/local/bin/npx \
+      /usr/local/bin/corepack \
+      /root/.npm \
+      /root/.cache
 WORKDIR /app
 
 ENV NODE_ENV=production
@@ -34,4 +41,4 @@ USER nextjs
 
 EXPOSE 3000
 
-CMD ["npm", "start"]
+CMD ["./node_modules/.bin/next", "start"]
