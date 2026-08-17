@@ -1,11 +1,11 @@
 # Stage 1: Install dependencies
-FROM node:24-alpine3.21 AS deps
+FROM node:25-alpine3.21 AS deps
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci --ignore-scripts
 
 # Stage 2: Build Next.js application
-FROM node:24-alpine3.21 AS builder
+FROM node:25-alpine3.21 AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
@@ -13,7 +13,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 RUN npm run build
 
 # Stage 3: Production runner
-FROM node:24-alpine3.21 AS runner
+FROM node:25-alpine3.21 AS runner
 RUN apk upgrade --no-cache && \
     rm -rf \
       /usr/local/lib/node_modules \
