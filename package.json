@@ -15,7 +15,7 @@
   "dependencies": {
     "@vercel/analytics": "^2.0.1",
     "@vercel/speed-insights": "^2.0.0",
-    "eslint": "^9.39.5",
+    "eslint": "^10.9.1",
     "eslint-config-next": "^16.3.3",
     "next": "^16.3.3",
     "react": "19.2.8",
@@ -31,7 +31,7 @@
     "jest": "^30.5.0",
     "jest-environment-jsdom": "^30.5.0",
     "tailwindcss": "^4.3.3",
-    "typescript": "^6.0.3"
+    "typescript": "^7.0.2"
   },
   "overrides": {
     "@babel/core": "^7.29.6",
