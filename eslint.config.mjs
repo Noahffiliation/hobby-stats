@@ -8,7 +8,7 @@ const eslintConfig = [
     },
   },
   {
-    ignores: [".next/**", "node_modules/**", "coverage/**", "out/**"],
+    ignores: [".next/**", "node_modules/**", "coverage/**", "out/**", "artifacts/**"],
   },
 ];
 
