@@ -1,46 +1,45 @@
 {
   "name": "hobby-stats",
-  "version": "0.1.0",
+  "version": "2.0.0",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "eslint .",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage"
   },
   "dependencies": {
-    "@heroui/react": "^2.8.10",
     "@vercel/analytics": "^2.0.1",
     "@vercel/speed-insights": "^2.0.0",
-    "eslint": "^9.39.4",
-    "eslint-config-next": "^16.2.10",
-    "next": "^16.2.11",
+    "eslint": "^9.39.5",
+    "eslint-config-next": "^16.3.3",
+    "next": "^16.3.3",
     "react": "19.2.8",
-    "react-dom": "19.2.7"
-  },
-  "overrides": {
-    "@babel/core": "^7.29.6",
-    "brace-expansion": "^5.0.7",
-    "js-yaml": "^4.3.0",
-    "postcss": "^8.5.14",
-    "serialize-javascript": "^7.0.4",
-    "test-exclude": "^7.0.1"
+    "react-dom": "19.2.8"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.3.3",
-    "@testing-library/jest-dom": "^7.0.0",
-    "@testing-library/react": "^16.3.2",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.3",
     "@types/jest": "^30.0.0",
-    "@types/node": "^26.1.1",
-    "@types/react": "19.2.17",
-    "jest": "^30.4.2",
-    "jest-environment-jsdom": "^30.4.1",
-    "postcss": "^8.5.14",
+    "@types/node": "^26.4.0",
+    "@types/react": "19.2.18",
+    "jest": "^30.5.0",
+    "jest-environment-jsdom": "^30.5.0",
     "tailwindcss": "^4.3.3",
     "typescript": "^6.0.3"
+  },
+  "overrides": {
+    "@babel/core": "^7.29.6",
+    "js-yaml": "^4.3.1",
+    "nanoid": "^3.3.17",
+    "postcss": "^8.5.18",
+    "serialize-javascript": "^7.0.4",
+    "sharp": "^0.35.3",
+    "test-exclude": "^7.0.1"
   }
 }
