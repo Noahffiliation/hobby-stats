@@ -19,7 +19,8 @@ describe('RootLayout', () => {
     render(
       <RootLayout>
         <div data-testid="child-content">Child Content</div>
-      </RootLayout>
+      </RootLayout>,
+      { container: document }
     );
 
     expect(screen.getByTestId('child-content')).toBeInTheDocument();
