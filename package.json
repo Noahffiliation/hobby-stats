@@ -15,9 +15,9 @@
   "dependencies": {
     "@vercel/analytics": "^2.0.1",
     "@vercel/speed-insights": "^2.0.0",
-    "eslint": "^9.39.5",
-    "eslint-config-next": "^16.3.3",
-    "next": "^16.3.3",
+    "eslint": "^10.9.1",
+    "eslint-config-next": "^16.3.4",
+    "next": "^16.3.4",
     "react": "19.2.8",
     "react-dom": "19.2.8"
   },
@@ -26,12 +26,12 @@
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.3",
     "@types/jest": "^30.0.0",
-    "@types/node": "^26.4.0",
+    "@types/node": "^26.4.1",
     "@types/react": "19.2.18",
-    "jest": "^30.5.0",
-    "jest-environment-jsdom": "^30.5.0",
+    "jest": "^30.5.1",
+    "jest-environment-jsdom": "^30.5.1",
     "tailwindcss": "^4.3.3",
-    "typescript": "^6.0.3"
+    "typescript": "^7.0.2"
   },
   "overrides": {
     "@babel/core": "^7.29.6",
