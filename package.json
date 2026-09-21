@@ -28,8 +28,8 @@
     "@types/jest": "^30.0.0",
     "@types/node": "^26.6.1",
     "@types/react": "19.3.0",
-    "jest": "^30.5.1",
-    "jest-environment-jsdom": "^30.5.1",
+    "jest": "^30.5.2",
+    "jest-environment-jsdom": "^30.5.2",
     "tailwindcss": "^4.3.3",
     "typescript": "^6.0.3"
   },
