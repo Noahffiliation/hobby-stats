@@ -2,6 +2,7 @@ import {
   aggregatePlayedGames,
   extractFulfilledText,
   GET,
+  getBackloggdCookie,
   getBackloggdUsername,
   parseBacklogHtml,
   parseProfileStats,
@@ -30,10 +31,30 @@ describe("Games API Route", () => {
     expect(getBackloggdUsername()).toBe("Noahffiliation");
   });
 
+  it("resolves cookie from env or undefined", () => {
+    expect(getBackloggdCookie()).toBeUndefined();
+    process.env.BACKLOGGD_COOKIE = "session=test1";
+    expect(getBackloggdCookie()).toBe("session=test1");
+    delete process.env.BACKLOGGD_COOKIE;
+    process.env.NEXT_PUBLIC_BACKLOGGD_COOKIE = "session=test2";
+    expect(getBackloggdCookie()).toBe("session=test2");
+    delete process.env.NEXT_PUBLIC_BACKLOGGD_COOKIE;
+  });
+
   it("tests parsing helpers edge cases directly", async () => {
     expect(parseProfileStats("<html><body>No stats</body></html>")).toEqual({
       totalPlayed: undefined,
       totalBacklog: undefined,
+    });
+
+    expect(
+      parseProfileStats(`
+        <a href="/u/Noahffiliation/games/played/categories:games/"><h1>282</h1></a>
+        <a href="/u/Noahffiliation/games/backlog/categories:games/"><h1>616</h1></a>
+      `),
+    ).toEqual({
+      totalPlayed: 282,
+      totalBacklog: 616,
     });
 
     expect(parseBacklogHtml("Making sure you&#39;re not a bot!")).toEqual([]);
@@ -187,6 +208,42 @@ describe("Games API Route", () => {
     expect(response.status).toBe(502);
     const data = await response.json();
     expect(data).toEqual({ error: "Failed to fetch games data" });
+
+    Promise.allSettled = originalAllSettled;
+  });
+
+  it("forwards cookie in fetch headers when BACKLOGGD_COOKIE is set", async () => {
+    process.env.BACKLOGGD_COOKIE = "session=test_game_cookie";
+    (fetch as jest.Mock).mockResolvedValue({
+      ok: true,
+      text: async () => "<html><body>No stats</body></html>",
+    });
+
+    const response = await GET();
+    expect(response.status).toBe(200);
+    expect(fetch).toHaveBeenCalledWith(
+      expect.stringContaining("Noahffiliation"),
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          Cookie: "session=test_game_cookie",
+        }),
+      }),
+    );
+  });
+
+  it("handles rejected promises in allSettled gracefully", async () => {
+    const originalAllSettled = Promise.allSettled;
+    Promise.allSettled = jest.fn().mockResolvedValueOnce([
+      { status: "rejected", reason: new Error("fail") },
+      { status: "fulfilled", value: null },
+      { status: "fulfilled", value: null },
+      { status: "fulfilled", value: null },
+    ]);
+
+    const response = await GET();
+    expect(response.status).toBe(200);
+    const data = await response.json();
+    expect(data.played).toEqual([]);
 
     Promise.allSettled = originalAllSettled;
   });

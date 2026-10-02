@@ -13,10 +13,15 @@ export function getCurlBin(): string {
     : "/usr/bin/curl";
 }
 
+export function getMdlCookie(): string | undefined {
+  return process.env.MDL_COOKIE || process.env.NEXT_PUBLIC_MDL_COOKIE;
+}
+
 export async function fetchMdlHtml(
   url: string,
   postJson?: { page: number; username: string },
 ): Promise<string | null> {
+  const cookie = getMdlCookie();
   try {
     const response = await fetch(url, {
       method: postJson ? "POST" : "GET",
@@ -32,6 +37,7 @@ export async function fetchMdlHtml(
               "Content-Type": "application/json",
             }
           : {}),
+        ...(cookie ? { Cookie: cookie } : {}),
       },
       ...(postJson ? { body: JSON.stringify(postJson) } : {}),
     });
@@ -56,6 +62,10 @@ export async function fetchMdlHtml(
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
         "--compressed",
       ];
+
+      if (cookie) {
+        args.push("-H", `Cookie: ${cookie}`);
+      }
 
       if (postJson) {
         args.push(
