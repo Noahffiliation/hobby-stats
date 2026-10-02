@@ -1,8 +1,12 @@
+import {
+  fetchBackloggdHtml,
+  getBackloggdCookie,
+  getBackloggdUsername,
+} from "../backloggd/utils";
+
 export const revalidate = 3600;
 
-export function getBackloggdUsername(): string {
-  return process.env.NEXT_PUBLIC_BACKLOGGD_USERNAME || "Noahffiliation";
-}
+export { getBackloggdCookie, getBackloggdUsername } from "../backloggd/utils";
 
 export interface GameItem {
   title: string;
@@ -19,9 +23,9 @@ export interface GamesListResponse {
 }
 
 const PLAYED_REGEX =
-  /href="\/u\/[^/]+\/played\/[^"]*"[^>]*>\s*<h\d+>\s*([0-9,]+)\s*<\/h\d+>/i;
+  /href="\/u\/[^/]+(?:\/games)?\/played\/[^"]*"[^>]*>\s*<h\d+>\s*([0-9,]+)\s*<\/h\d+>/i;
 const BACKLOG_REGEX =
-  /href="\/u\/[^/]+\/backlog\/[^"]*"[^>]*>\s*<h\d+>\s*([0-9,]+)\s*<\/h\d+>/i;
+  /href="\/u\/[^/]+(?:\/games)?\/backlog\/[^"]*"[^>]*>\s*<h\d+>\s*([0-9,]+)\s*<\/h\d+>/i;
 
 function cleanGameTitle(raw: string): string {
   return raw
@@ -126,30 +130,19 @@ export async function extractFulfilledText(
 
 export async function GET() {
   const username = getBackloggdUsername();
-  const headers = {
-    "User-Agent":
-      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-    Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-  };
 
   try {
-    const [profileRes, backlogRes, reviewsRes1, reviewsRes2] =
-      await Promise.allSettled([
-        fetch(`https://backloggd.com/u/${username}/`, { headers }),
-        fetch(`https://backloggd.com/u/${username}/backlog`, { headers }),
-        fetch(`https://backloggd.com/u/${username}/reviews/`, { headers }),
-        fetch(`https://backloggd.com/u/${username}/reviews?page=2`, {
-          headers,
-        }),
-      ]);
-
     const [profileHtml, backlogHtml, reviewsHtml1, reviewsHtml2] =
-      await Promise.all([
-        extractFulfilledText(profileRes),
-        extractFulfilledText(backlogRes),
-        extractFulfilledText(reviewsRes1),
-        extractFulfilledText(reviewsRes2),
-      ]);
+      await Promise.allSettled([
+        fetchBackloggdHtml(`https://backloggd.com/u/${username}/`),
+        fetchBackloggdHtml(`https://backloggd.com/u/${username}/backlog`),
+        fetchBackloggdHtml(`https://backloggd.com/u/${username}/reviews/`),
+        fetchBackloggdHtml(
+          `https://backloggd.com/u/${username}/reviews?page=2`,
+        ),
+      ]).then((results) =>
+        results.map((r) => (r.status === "fulfilled" ? r.value : null)),
+      );
 
     const stats = profileHtml ? parseProfileStats(profileHtml) : {};
     const backlog = backlogHtml ? parseBacklogHtml(backlogHtml) : [];

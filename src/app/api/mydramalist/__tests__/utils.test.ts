@@ -2,6 +2,7 @@ import {
   COMPLETED_REGEX,
   fetchMdlHtml,
   getCurlBin,
+  getMdlCookie,
   getMdlUsername,
   PTW_REGEX,
 } from "../utils";
@@ -18,11 +19,6 @@ describe("MyDramaList Utils", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     process.env = { ...originalEnv };
-    (fetch as jest.Mock).mockClear();
-    (execFile as unknown as jest.Mock).mockReset();
-    (execFile as unknown as jest.Mock).mockImplementation(
-      (_cmd, _args, _opts, cb) => cb(new Error("curl disabled in test"), ""),
-    );
   });
 
   afterAll(() => {
@@ -34,6 +30,16 @@ describe("MyDramaList Utils", () => {
     expect(getMdlUsername()).toBe("custom_mdl");
     delete process.env.NEXT_PUBLIC_MDL_USERNAME;
     expect(getMdlUsername()).toBe("Noahffiliation");
+  });
+
+  it("resolves cookie from env or undefined", () => {
+    expect(getMdlCookie()).toBeUndefined();
+    process.env.MDL_COOKIE = "cf_clearance=test1";
+    expect(getMdlCookie()).toBe("cf_clearance=test1");
+    delete process.env.MDL_COOKIE;
+    process.env.NEXT_PUBLIC_MDL_COOKIE = "cf_clearance=test2";
+    expect(getMdlCookie()).toBe("cf_clearance=test2");
+    delete process.env.NEXT_PUBLIC_MDL_COOKIE;
   });
 
   it("returns appropriate curl binary for platform", () => {
@@ -105,5 +111,41 @@ describe("MyDramaList Utils", () => {
 
     const result = await fetchMdlHtml("https://mydramalist.com/test");
     expect(result).toBeNull();
+  });
+
+  it("passes cookie in fetch headers and curl args when MDL_COOKIE is set", async () => {
+    process.env.MDL_COOKIE = "cf_clearance=abc123";
+
+    // Test fetch includes Cookie header
+    (fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
+      text: async () => "<html><body>With Cookie</body></html>",
+    });
+
+    const fetchResult = await fetchMdlHtml("https://mydramalist.com/test");
+    expect(fetchResult).toBe("<html><body>With Cookie</body></html>");
+    expect(fetch).toHaveBeenCalledWith(
+      "https://mydramalist.com/test",
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          Cookie: "cf_clearance=abc123",
+        }),
+      }),
+    );
+
+    // Test curl fallback includes Cookie arg
+    (fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
+      text: async () => "Just a moment...",
+    });
+    (execFile as unknown as jest.Mock).mockImplementationOnce(
+      (_cmd, args, _opts, cb) => {
+        expect(args).toContain("Cookie: cf_clearance=abc123");
+        cb(null, "<html><body>Curl With Cookie</body></html>");
+      },
+    );
+
+    const curlResult = await fetchMdlHtml("https://mydramalist.com/test");
+    expect(curlResult).toBe("<html><body>Curl With Cookie</body></html>");
   });
 });
