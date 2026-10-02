@@ -28,7 +28,7 @@ export default function LastFmPage() {
       }
     }
 
-    fetchLastFm();
+    void fetchLastFm();
 
     return () => {
       isMounted = false;

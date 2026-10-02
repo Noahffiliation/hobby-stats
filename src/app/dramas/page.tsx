@@ -41,7 +41,7 @@ export default function DramasPage() {
       }
     }
 
-    fetchDramas();
+    void fetchDramas();
 
     return () => {
       isMounted = false;

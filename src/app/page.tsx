@@ -72,7 +72,7 @@ export default function Home() {
       }
     }
 
-    loadStats();
+    void loadStats();
 
     return () => {
       isMounted = false;

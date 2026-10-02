@@ -37,7 +37,7 @@ export default function GamesPage() {
       }
     }
 
-    fetchGames();
+    void fetchGames();
 
     return () => {
       isMounted = false;

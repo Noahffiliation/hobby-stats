@@ -44,7 +44,7 @@ export default function MoviesPage() {
       }
     }
 
-    fetchMovieData();
+    void fetchMovieData();
 
     return () => {
       isMounted = false;

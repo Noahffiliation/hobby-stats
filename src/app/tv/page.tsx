@@ -44,7 +44,7 @@ export default function TvPage() {
       }
     }
 
-    fetchTvData();
+    void fetchTvData();
 
     return () => {
       isMounted = false;

@@ -1,8 +1,4 @@
-import {
-  fetchBackloggdHtml,
-  getBackloggdCookie,
-  getBackloggdUsername,
-} from "../backloggd/utils";
+import { fetchBackloggdHtml, getBackloggdUsername } from "../backloggd/utils";
 
 export const revalidate = 3600;
 

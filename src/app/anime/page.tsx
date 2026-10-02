@@ -41,7 +41,7 @@ export default function AnimePage() {
       }
     }
 
-    fetchAnime();
+    void fetchAnime();
 
     return () => {
       isMounted = false;

@@ -14,9 +14,11 @@ export const PLAYED_REGEX =
   /href="\/u\/[^/]+(?:\/games)?\/played\/[^"]*"[^>]*>\s*<h\d+>\s*([0-9,]+)\s*<\/h\d+>/i;
 export const BACKLOG_REGEX =
   /href="\/u\/[^/]+(?:\/games)?\/backlog\/[^"]*"[^>]*>\s*<h\d+>\s*([0-9,]+)\s*<\/h\d+>/i;
+export const ANUBIS_CHALLENGE_REGEX =
+  /<script id="anubis_challenge" type="application\/json">([\s\S]*?)<\/script>/;
 
 export class CookieJar {
-  private cookies = new Map<string, string>();
+  private readonly cookies = new Map<string, string>();
 
   public setCookieString(cookieStr?: string): void {
     if (!cookieStr) return;
@@ -109,6 +111,84 @@ export function solveAnubisPoW(
   return null;
 }
 
+export interface AnubisChallengeInfo {
+  id: string;
+  randomData: string;
+  difficulty: number;
+}
+
+export function parseAnubisChallenge(html: string): AnubisChallengeInfo | null {
+  const match = ANUBIS_CHALLENGE_REGEX.exec(html);
+  if (!match) return null;
+
+  try {
+    const data = JSON.parse(match[1]);
+    const { rules, challenge } = data ?? {};
+    if (rules?.algorithm !== "fast" || typeof rules?.difficulty !== "number") {
+      return null;
+    }
+    if (!challenge?.id || !challenge?.randomData) {
+      return null;
+    }
+    return {
+      id: challenge.id,
+      randomData: challenge.randomData,
+      difficulty: rules.difficulty,
+    };
+  } catch {
+    return null;
+  }
+}
+
+async function solveAndPassAnubisChallenge(
+  url: string,
+  html: string,
+  headers: Record<string, string>,
+): Promise<string | null> {
+  const challenge = parseAnubisChallenge(html);
+  if (!challenge) return null;
+
+  const t0 = Date.now();
+  const solution = solveAnubisPoW(challenge.randomData, challenge.difficulty);
+  if (!solution) return null;
+
+  const t1 = Date.now();
+  const passUrl = new URL(
+    "/.within.website/x/cmd/anubis/api/pass-challenge",
+    url,
+  );
+  passUrl.searchParams.set("id", challenge.id);
+  passUrl.searchParams.set("response", solution.hash);
+  passUrl.searchParams.set("nonce", String(solution.nonce));
+  passUrl.searchParams.set("redir", url);
+  passUrl.searchParams.set("elapsedTime", String(t1 - t0));
+
+  const passRes = await fetch(passUrl.toString(), {
+    method: "GET",
+    headers: {
+      ...headers,
+      Cookie: sharedBackloggdCookieJar.toHeader(),
+      Referer: url,
+    },
+    redirect: "manual",
+  });
+
+  const passCookies = passRes.headers?.getSetCookie?.() ?? [];
+  sharedBackloggdCookieJar.setCookies(passCookies);
+
+  headers.Cookie = sharedBackloggdCookieJar.toHeader();
+  const finalRes = await fetch(url, { method: "GET", headers });
+  const finalCookies = finalRes.headers?.getSetCookie?.() ?? [];
+  sharedBackloggdCookieJar.setCookies(finalCookies);
+
+  if (!finalRes.ok) return null;
+  const finalHtml = await finalRes.text();
+  if (finalHtml.includes("Making sure you&#39;re not a bot!")) {
+    return null;
+  }
+  return finalHtml;
+}
+
 export async function fetchBackloggdHtml(url: string): Promise<string | null> {
   const envCookie = getBackloggdCookie();
   if (envCookie) {
@@ -134,74 +214,7 @@ export async function fetchBackloggdHtml(url: string): Promise<string | null> {
     const html = await res.text();
 
     if (html.includes("Making sure you&#39;re not a bot!")) {
-      const match = html.match(
-        /<script id="anubis_challenge" type="application\/json">([\s\S]*?)<\/script>/,
-      );
-      if (!match) return null;
-
-      let challengeData: {
-        rules?: { algorithm?: string; difficulty?: number };
-        challenge?: { id?: string; randomData?: string };
-      };
-
-      try {
-        challengeData = JSON.parse(match[1]);
-      } catch {
-        return null;
-      }
-
-      if (
-        challengeData.rules?.algorithm !== "fast" ||
-        typeof challengeData.rules?.difficulty !== "number" ||
-        !challengeData.challenge?.id ||
-        !challengeData.challenge?.randomData
-      ) {
-        return null;
-      }
-
-      const t0 = Date.now();
-      const solution = solveAnubisPoW(
-        challengeData.challenge.randomData,
-        challengeData.rules.difficulty,
-      );
-
-      if (!solution) return null;
-
-      const t1 = Date.now();
-      const passUrl = new URL(
-        "/.within.website/x/cmd/anubis/api/pass-challenge",
-        url,
-      );
-      passUrl.searchParams.set("id", challengeData.challenge.id);
-      passUrl.searchParams.set("response", solution.hash);
-      passUrl.searchParams.set("nonce", String(solution.nonce));
-      passUrl.searchParams.set("redir", url);
-      passUrl.searchParams.set("elapsedTime", String(t1 - t0));
-
-      const passRes = await fetch(passUrl.toString(), {
-        method: "GET",
-        headers: {
-          ...headers,
-          Cookie: sharedBackloggdCookieJar.toHeader(),
-          Referer: url,
-        },
-        redirect: "manual",
-      });
-
-      const passCookies = passRes.headers?.getSetCookie?.() ?? [];
-      sharedBackloggdCookieJar.setCookies(passCookies);
-
-      headers.Cookie = sharedBackloggdCookieJar.toHeader();
-      const finalRes = await fetch(url, { method: "GET", headers });
-      const finalCookies = finalRes.headers?.getSetCookie?.() ?? [];
-      sharedBackloggdCookieJar.setCookies(finalCookies);
-
-      if (!finalRes.ok) return null;
-      const finalHtml = await finalRes.text();
-      if (finalHtml.includes("Making sure you&#39;re not a bot!")) {
-        return null;
-      }
-      return finalHtml;
+      return await solveAndPassAnubisChallenge(url, html, headers);
     }
 
     if (!res.ok) return null;
