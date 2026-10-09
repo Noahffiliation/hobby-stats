@@ -247,4 +247,20 @@ describe("Games API Route", () => {
 
     Promise.allSettled = originalAllSettled;
   });
+
+  it("uses fallback stats when scraping fails and env is set", async () => {
+    process.env.BACKLOGGD_PLAYED = "123";
+    process.env.BACKLOGGD_BACKLOG = "456";
+    (fetch as jest.Mock).mockResolvedValue({
+      ok: false,
+    });
+
+    const response = await GET();
+    expect(response.status).toBe(200);
+    const data = await response.json();
+    expect(data.totalPlayed).toBe(123);
+    expect(data.totalBacklog).toBe(456);
+    delete process.env.BACKLOGGD_PLAYED;
+    delete process.env.BACKLOGGD_BACKLOG;
+  });
 });

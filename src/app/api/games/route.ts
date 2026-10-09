@@ -1,3 +1,4 @@
+import { getBackloggdFallbackStats } from "../backloggd/route";
 import { fetchBackloggdHtml, getBackloggdUsername } from "../backloggd/utils";
 
 export const revalidate = 3600;
@@ -141,6 +142,11 @@ export async function GET() {
       );
 
     const stats = profileHtml ? parseProfileStats(profileHtml) : {};
+    const fallback = getBackloggdFallbackStats();
+    if (fallback) {
+      stats.totalBacklog ??= fallback.backlog;
+      stats.totalPlayed ??= fallback.played;
+    }
     const backlog = backlogHtml ? parseBacklogHtml(backlogHtml) : [];
     const validReviewsHtmls = [reviewsHtml1, reviewsHtml2].filter(
       (html): html is string => html !== null,

@@ -7,7 +7,7 @@ import {
 
 export const revalidate = 3600;
 
-export { getCurlBin, getMdlUsername } from "./utils";
+export { getCurlBin, getMdlProxyUrl, getMdlUsername } from "./utils";
 
 function countRows(html: string): number {
   return [...html.matchAll(/<tr id="ml\d+">/gi)].length;
@@ -35,35 +35,69 @@ async function countTotalRows(statusPath: string): Promise<number> {
   return total;
 }
 
+export function getMdlFallbackStats(): {
+  completed: number;
+  planToWatch: number;
+} | null {
+  const completedStr =
+    process.env.MDL_COMPLETED || process.env.NEXT_PUBLIC_MDL_COMPLETED;
+  const ptwStr =
+    process.env.MDL_PLAN_TO_WATCH || process.env.NEXT_PUBLIC_MDL_PLAN_TO_WATCH;
+
+  if (completedStr !== undefined && ptwStr !== undefined) {
+    const completed = Number.parseInt(completedStr, 0);
+    const planToWatch = Number.parseInt(ptwStr, 0);
+    if (!Number.isNaN(completed) && !Number.isNaN(planToWatch)) {
+      return { completed, planToWatch };
+    }
+  }
+  return null;
+}
+
+export function parseMdlProfileStats(html: string | null): {
+  completed?: number;
+  planToWatch?: number;
+} {
+  if (!html) return {};
+  const completedMatch = COMPLETED_REGEX.exec(html);
+  const ptwMatch = PTW_REGEX.exec(html);
+
+  return {
+    completed: completedMatch
+      ? Number.parseInt(completedMatch[1].replaceAll(",", ""), 10)
+      : undefined,
+    planToWatch: ptwMatch
+      ? Number.parseInt(ptwMatch[1].replaceAll(",", ""), 10)
+      : undefined,
+  };
+}
+
+async function resolveStatsCount(
+  current: number | undefined,
+  statusPath: "completed" | "plan_to_watch",
+): Promise<number | undefined> {
+  if (current !== undefined) return current;
+  const total = await countTotalRows(statusPath);
+  return total > 0 ? total : undefined;
+}
+
 export async function GET() {
   const username = getMdlUsername();
   const mainHtml = await fetchMdlHtml(
     `https://mydramalist.com/dramalist/${username}`,
   );
 
-  let completed: number | undefined;
-  let planToWatch: number | undefined;
+  let { completed, planToWatch } = parseMdlProfileStats(mainHtml);
 
-  if (mainHtml) {
-    const completedMatch = COMPLETED_REGEX.exec(mainHtml);
-    const ptwMatch = PTW_REGEX.exec(mainHtml);
+  completed = await resolveStatsCount(completed, "completed");
+  planToWatch = await resolveStatsCount(planToWatch, "plan_to_watch");
 
-    if (completedMatch) {
-      completed = Number.parseInt(completedMatch[1].replaceAll(",", ""), 10);
+  if (completed === undefined || planToWatch === undefined) {
+    const fallback = getMdlFallbackStats();
+    if (fallback) {
+      completed ??= fallback.completed;
+      planToWatch ??= fallback.planToWatch;
     }
-    if (ptwMatch) {
-      planToWatch = Number.parseInt(ptwMatch[1].replaceAll(",", ""), 10);
-    }
-  }
-
-  if (completed === undefined) {
-    const compTotal = await countTotalRows("completed");
-    if (compTotal > 0) completed = compTotal;
-  }
-
-  if (planToWatch === undefined) {
-    const ptwTotal = await countTotalRows("plan_to_watch");
-    if (ptwTotal > 0) planToWatch = ptwTotal;
   }
 
   if (completed !== undefined && planToWatch !== undefined) {

@@ -13,6 +13,75 @@ import {
   getWatchlistShows,
 } from "./api/get-data";
 
+type StatsSetters = {
+  setMoviesWatched: (v: number) => void;
+  setMoviesWatchlist: (v: number) => void;
+  setShowsWatched: (v: number) => void;
+  setShowsWatchlist: (v: number) => void;
+  setGamesPlayed: (v: number) => void;
+  setGamesBacklog: (v: number) => void;
+  setAnimeCompleted: (v: number) => void;
+  setAnimePlanToWatch: (v: number) => void;
+  setDramasCompleted: (v: number) => void;
+  setDramasPlanToWatch: (v: number) => void;
+};
+
+type SettledResults = [
+  PromiseSettledResult<Awaited<ReturnType<typeof getTraktStats>>>,
+  PromiseSettledResult<Awaited<ReturnType<typeof getWatchlistMovies>>>,
+  PromiseSettledResult<Awaited<ReturnType<typeof getWatchedShows>>>,
+  PromiseSettledResult<Awaited<ReturnType<typeof getWatchlistShows>>>,
+  PromiseSettledResult<Awaited<ReturnType<typeof getBackloggdStats>>>,
+  PromiseSettledResult<Awaited<ReturnType<typeof getMyAnimeListStats>>>,
+  PromiseSettledResult<Awaited<ReturnType<typeof getMyDramaListStats>>>,
+];
+
+function logRejections(results: PromiseSettledResult<unknown>[]): void {
+  for (const res of results) {
+    if (res.status === "rejected") {
+      console.log(res.reason);
+    }
+  }
+}
+
+function applySettledStats(
+  [
+    statsRes,
+    watchlistMoviesRes,
+    watchedShowsRes,
+    watchlistShowsRes,
+    backloggdRes,
+    malRes,
+    mdlRes,
+  ]: SettledResults,
+  setters: StatsSetters,
+): void {
+  if (statsRes.status === "fulfilled") {
+    setters.setMoviesWatched(statsRes.value.movies.watched);
+  }
+  if (watchlistMoviesRes.status === "fulfilled") {
+    setters.setMoviesWatchlist(watchlistMoviesRes.value.length);
+  }
+  if (watchedShowsRes.status === "fulfilled") {
+    setters.setShowsWatched(watchedShowsRes.value);
+  }
+  if (watchlistShowsRes.status === "fulfilled") {
+    setters.setShowsWatchlist(watchlistShowsRes.value.length);
+  }
+  if (backloggdRes.status === "fulfilled") {
+    setters.setGamesPlayed(backloggdRes.value.played);
+    setters.setGamesBacklog(backloggdRes.value.backlog);
+  }
+  if (malRes.status === "fulfilled") {
+    setters.setAnimeCompleted(malRes.value.completed);
+    setters.setAnimePlanToWatch(malRes.value.planToWatch);
+  }
+  if (mdlRes.status === "fulfilled") {
+    setters.setDramasCompleted(mdlRes.value.completed);
+    setters.setDramasPlanToWatch(mdlRes.value.planToWatch);
+  }
+}
+
 export default function Home() {
   const [gamesPlayed, setGamesPlayed] = useState(0);
   const [gamesBacklog, setGamesBacklog] = useState(0);
@@ -32,15 +101,7 @@ export default function Home() {
 
     async function loadStats() {
       try {
-        const [
-          stats,
-          watchlistMovies,
-          watchedShows,
-          watchlistShows,
-          backloggd,
-          mal,
-          mdl,
-        ] = await Promise.all([
+        const results = await Promise.allSettled([
           getTraktStats(),
           getWatchlistMovies(),
           getWatchedShows(),
@@ -50,25 +111,33 @@ export default function Home() {
           getMyDramaListStats(),
         ]);
 
-        if (isMounted) {
-          setMoviesWatched(stats.movies.watched);
-          setMoviesWatchlist(watchlistMovies.length);
-          setShowsWatched(watchedShows);
-          setShowsWatchlist(watchlistShows.length);
-          setGamesPlayed(backloggd.played);
-          setGamesBacklog(backloggd.backlog);
-          setAnimeCompleted(mal.completed);
-          setAnimePlanToWatch(mal.planToWatch);
-          setDramasCompleted(mdl.completed);
-          setDramasPlanToWatch(mdl.planToWatch);
-          setLoading(false);
-        }
-      } catch (err) {
-        if (isMounted) {
-          console.log(err);
+        if (!isMounted) return;
+
+        logRejections(results);
+
+        if (results.every((res) => res.status === "rejected")) {
           setError("Unable to load stats. Please try again later.");
-          setLoading(false);
+        } else {
+          applySettledStats(results, {
+            setMoviesWatched,
+            setMoviesWatchlist,
+            setShowsWatched,
+            setShowsWatchlist,
+            setGamesPlayed,
+            setGamesBacklog,
+            setAnimeCompleted,
+            setAnimePlanToWatch,
+            setDramasCompleted,
+            setDramasPlanToWatch,
+          });
         }
+
+        setLoading(false);
+      } catch (err) {
+        if (!isMounted) return;
+        console.log(err);
+        setError("Unable to load stats. Please try again later.");
+        setLoading(false);
       }
     }
 

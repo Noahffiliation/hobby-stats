@@ -9,6 +9,25 @@ export const revalidate = 3600;
 
 export { getBackloggdCookie, getBackloggdUsername } from "./utils";
 
+export function getBackloggdFallbackStats(): {
+  played: number;
+  backlog: number;
+} | null {
+  const playedStr =
+    process.env.BACKLOGGD_PLAYED || process.env.NEXT_PUBLIC_BACKLOGGD_PLAYED;
+  const backlogStr =
+    process.env.BACKLOGGD_BACKLOG || process.env.NEXT_PUBLIC_BACKLOGGD_BACKLOG;
+
+  if (playedStr !== undefined && backlogStr !== undefined) {
+    const played = Number.parseInt(playedStr, 10);
+    const backlog = Number.parseInt(backlogStr, 10);
+    if (!Number.isNaN(played) && !Number.isNaN(backlog)) {
+      return { played, backlog };
+    }
+  }
+  return null;
+}
+
 export async function GET() {
   const username = getBackloggdUsername();
   const html = await fetchBackloggdHtml(`https://backloggd.com/u/${username}/`);
@@ -23,6 +42,11 @@ export async function GET() {
         backlog: Number.parseInt(backlogMatch[1].replaceAll(",", ""), 10),
       });
     }
+  }
+
+  const fallback = getBackloggdFallbackStats();
+  if (fallback) {
+    return Response.json(fallback);
   }
 
   return Response.json(
