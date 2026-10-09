@@ -260,4 +260,18 @@ describe("Dramas API Route", () => {
     expect(data.completed).toEqual([]);
     expect(data.planToWatch).toEqual([]);
   });
+
+  it("uses fallback stats for totals when scraping fails and env is set", async () => {
+    process.env.MDL_COMPLETED = "205";
+    process.env.MDL_PLAN_TO_WATCH = "237";
+    (fetch as jest.Mock).mockRejectedValue(new Error("Fetch failed"));
+
+    const response = await GET();
+    expect(response.status).toBe(200);
+    const data = await response.json();
+    expect(data.totalCompleted).toBe(205);
+    expect(data.totalPlanToWatch).toBe(237);
+    delete process.env.MDL_COMPLETED;
+    delete process.env.MDL_PLAN_TO_WATCH;
+  });
 });

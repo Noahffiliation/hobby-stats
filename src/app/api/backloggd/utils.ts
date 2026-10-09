@@ -69,7 +69,7 @@ export const sharedBackloggdCookieJar = new CookieJar();
 export function solveAnubisPoW(
   randomData: string,
   difficulty: number,
-  maxIterations = 100_000,
+  maxIterations = 2_500_000,
 ): { nonce: number; hash: string } | null {
   if (difficulty > 6) {
     return null;

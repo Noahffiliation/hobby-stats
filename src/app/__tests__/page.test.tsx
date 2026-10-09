@@ -102,26 +102,29 @@ describe("Home Page", () => {
     });
   });
 
-  it("handles and displays error state when API calls fail", async () => {
+  it("handles and displays error state when all API calls fail", async () => {
     const consoleSpy = jest.spyOn(console, "log").mockImplementation();
     (getTraktStats as jest.Mock).mockRejectedValue(
       new Error("Trakt stats failed"),
     );
-    (getWatchedShows as jest.Mock).mockResolvedValue(0);
-    (getWatchlistMovies as jest.Mock).mockResolvedValue([]);
-    (getWatchlistShows as jest.Mock).mockResolvedValue([]);
-    (getBackloggdStats as jest.Mock).mockResolvedValue({
-      played: 0,
-      backlog: 0,
-    });
-    (getMyAnimeListStats as jest.Mock).mockResolvedValue({
-      completed: 0,
-      planToWatch: 0,
-    });
-    (getMyDramaListStats as jest.Mock).mockResolvedValue({
-      completed: 0,
-      planToWatch: 0,
-    });
+    (getWatchedShows as jest.Mock).mockRejectedValue(
+      new Error("Watched shows failed"),
+    );
+    (getWatchlistMovies as jest.Mock).mockRejectedValue(
+      new Error("Watchlist movies failed"),
+    );
+    (getWatchlistShows as jest.Mock).mockRejectedValue(
+      new Error("Watchlist shows failed"),
+    );
+    (getBackloggdStats as jest.Mock).mockRejectedValue(
+      new Error("Backloggd failed"),
+    );
+    (getMyAnimeListStats as jest.Mock).mockRejectedValue(
+      new Error("MAL failed"),
+    );
+    (getMyDramaListStats as jest.Mock).mockRejectedValue(
+      new Error("MDL failed"),
+    );
 
     render(<Home />);
 
@@ -130,6 +133,39 @@ describe("Home Page", () => {
       expect(screen.getByTestId("error-state")).toHaveTextContent(
         "Unable to load stats",
       );
+    });
+
+    consoleSpy.mockRestore();
+  });
+
+  it("renders available stats when some APIs fail", async () => {
+    const consoleSpy = jest.spyOn(console, "log").mockImplementation();
+    (getTraktStats as jest.Mock).mockResolvedValue({
+      movies: { watched: 100 },
+    });
+    (getWatchedShows as jest.Mock).mockResolvedValue(50);
+    (getWatchlistMovies as jest.Mock).mockResolvedValue(new Array(20));
+    (getWatchlistShows as jest.Mock).mockResolvedValue(new Array(10));
+    (getBackloggdStats as jest.Mock).mockRejectedValue(
+      new Error("Backloggd 502"),
+    );
+    (getMyAnimeListStats as jest.Mock).mockResolvedValue({
+      completed: 350,
+      planToWatch: 320,
+    });
+    (getMyDramaListStats as jest.Mock).mockRejectedValue(new Error("MDL 502"));
+
+    render(<Home />);
+
+    await waitFor(() => {
+      const progresses = screen.getAllByTestId("progress");
+      expect(progresses).toHaveLength(5);
+      expect(progresses[0]).toHaveTextContent(/Game Progress - 0 \/ 0/);
+      expect(progresses[1]).toHaveTextContent(/Movie Progress - 100 \/ 120/);
+      expect(progresses[2]).toHaveTextContent(/Show Progress - 50 \/ 60/);
+      expect(progresses[3]).toHaveTextContent(/Anime Progress - 350 \/ 670/);
+      expect(progresses[4]).toHaveTextContent(/K-Drama Progress - 0 \/ 0/);
+      expect(screen.queryByTestId("error-state")).not.toBeInTheDocument();
     });
 
     consoleSpy.mockRestore();
@@ -168,5 +204,25 @@ describe("Home Page", () => {
     }).not.toThrow();
 
     expect(screen.queryByTestId("loading-state")).not.toBeInTheDocument();
+  });
+
+  it("handles unexpected errors during loadStats", async () => {
+    const consoleSpy = jest.spyOn(console, "log").mockImplementation();
+    const originalAllSettled = Promise.allSettled;
+    Promise.allSettled = jest
+      .fn()
+      .mockRejectedValueOnce(new Error("Unexpected throw"));
+
+    render(<Home />);
+
+    await waitFor(() => {
+      expect(consoleSpy).toHaveBeenCalledWith(expect.any(Error));
+      expect(screen.getByTestId("error-state")).toHaveTextContent(
+        "Unable to load stats",
+      );
+    });
+
+    Promise.allSettled = originalAllSettled;
+    consoleSpy.mockRestore();
   });
 });

@@ -1,4 +1,4 @@
-import { GET, getCurlBin, getMdlUsername } from "../route";
+import { GET, getCurlBin, getMdlFallbackStats, getMdlUsername } from "../route";
 import { execFile } from "node:child_process";
 
 globalThis.fetch = jest.fn();
@@ -12,6 +12,10 @@ describe("MyDramaList API Route", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     process.env = { ...originalEnv };
+    delete process.env.SCRAPER_API_KEY;
+    delete process.env.NEXT_PUBLIC_SCRAPER_API_KEY;
+    delete process.env.MDL_PROXY_URL;
+    delete process.env.NEXT_PUBLIC_MDL_PROXY_URL;
     (fetch as jest.Mock).mockClear();
     (execFile as unknown as jest.Mock).mockReset();
     (execFile as unknown as jest.Mock).mockImplementation(
@@ -28,6 +32,46 @@ describe("MyDramaList API Route", () => {
     expect(getMdlUsername()).toBe("custom_mdl");
     delete process.env.NEXT_PUBLIC_MDL_USERNAME;
     expect(getMdlUsername()).toBe("Noahffiliation");
+  });
+
+  it("resolves fallback stats from env or null", () => {
+    delete process.env.MDL_COMPLETED;
+    delete process.env.NEXT_PUBLIC_MDL_COMPLETED;
+    delete process.env.MDL_PLAN_TO_WATCH;
+    delete process.env.NEXT_PUBLIC_MDL_PLAN_TO_WATCH;
+    expect(getMdlFallbackStats()).toBeNull();
+
+    process.env.MDL_COMPLETED = "210";
+    expect(getMdlFallbackStats()).toBeNull();
+
+    process.env.MDL_PLAN_TO_WATCH = "240";
+    expect(getMdlFallbackStats()).toEqual({ completed: 210, planToWatch: 240 });
+
+    delete process.env.MDL_COMPLETED;
+    delete process.env.MDL_PLAN_TO_WATCH;
+    process.env.NEXT_PUBLIC_MDL_COMPLETED = "invalid";
+    process.env.NEXT_PUBLIC_MDL_PLAN_TO_WATCH = "240";
+    expect(getMdlFallbackStats()).toBeNull();
+
+    process.env.NEXT_PUBLIC_MDL_COMPLETED = "150";
+    expect(getMdlFallbackStats()).toEqual({ completed: 150, planToWatch: 240 });
+    delete process.env.NEXT_PUBLIC_MDL_COMPLETED;
+    delete process.env.NEXT_PUBLIC_MDL_PLAN_TO_WATCH;
+  });
+
+  it("returns fallback stats when scraping fails and fallback env is set", async () => {
+    process.env.MDL_COMPLETED = "205";
+    process.env.MDL_PLAN_TO_WATCH = "237";
+    (fetch as jest.Mock).mockResolvedValueOnce({
+      ok: false,
+    });
+
+    const response = await GET();
+    expect(response.status).toBe(200);
+    const data = await response.json();
+    expect(data).toEqual({ completed: 205, planToWatch: 237 });
+    delete process.env.MDL_COMPLETED;
+    delete process.env.MDL_PLAN_TO_WATCH;
   });
 
   it("returns appropriate curl binary for platform", () => {

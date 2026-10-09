@@ -1,8 +1,10 @@
 import {
   COMPLETED_REGEX,
   fetchMdlHtml,
+  fetchViaProxy,
   getCurlBin,
   getMdlCookie,
+  getMdlProxyUrl,
   getMdlUsername,
   PTW_REGEX,
 } from "../utils";
@@ -19,6 +21,10 @@ describe("MyDramaList Utils", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     process.env = { ...originalEnv };
+    delete process.env.SCRAPER_API_KEY;
+    delete process.env.NEXT_PUBLIC_SCRAPER_API_KEY;
+    delete process.env.MDL_PROXY_URL;
+    delete process.env.NEXT_PUBLIC_MDL_PROXY_URL;
   });
 
   afterAll(() => {
@@ -33,6 +39,8 @@ describe("MyDramaList Utils", () => {
   });
 
   it("resolves cookie from env or undefined", () => {
+    delete process.env.MDL_COOKIE;
+    delete process.env.NEXT_PUBLIC_MDL_COOKIE;
     expect(getMdlCookie()).toBeUndefined();
     process.env.MDL_COOKIE = "cf_clearance=test1";
     expect(getMdlCookie()).toBe("cf_clearance=test1");
@@ -147,5 +155,85 @@ describe("MyDramaList Utils", () => {
 
     const curlResult = await fetchMdlHtml("https://mydramalist.com/test");
     expect(curlResult).toBe("<html><body>Curl With Cookie</body></html>");
+  });
+
+  it("resolves proxy url from SCRAPER_API_KEY or MDL_PROXY_URL or null", () => {
+    delete process.env.SCRAPER_API_KEY;
+    delete process.env.NEXT_PUBLIC_SCRAPER_API_KEY;
+    delete process.env.MDL_PROXY_URL;
+    delete process.env.NEXT_PUBLIC_MDL_PROXY_URL;
+    expect(getMdlProxyUrl("https://example.com")).toBeNull();
+
+    process.env.SCRAPER_API_KEY = "test_key";
+    expect(getMdlProxyUrl("https://example.com")).toBe(
+      "https://api.scraperapi.com?api_key=test_key&url=https%3A%2F%2Fexample.com",
+    );
+    delete process.env.SCRAPER_API_KEY;
+
+    process.env.NEXT_PUBLIC_SCRAPER_API_KEY = "pub_key";
+    expect(getMdlProxyUrl("https://example.com")).toBe(
+      "https://api.scraperapi.com?api_key=pub_key&url=https%3A%2F%2Fexample.com",
+    );
+    delete process.env.NEXT_PUBLIC_SCRAPER_API_KEY;
+
+    process.env.MDL_PROXY_URL = "https://custom-proxy.com/?target={url}";
+    expect(getMdlProxyUrl("https://example.com")).toBe(
+      "https://custom-proxy.com/?target=https%3A%2F%2Fexample.com",
+    );
+
+    process.env.MDL_PROXY_URL = "https://custom-proxy.com/?target=";
+    expect(getMdlProxyUrl("https://example.com")).toBe(
+      "https://custom-proxy.com/?target=https%3A%2F%2Fexample.com",
+    );
+    delete process.env.MDL_PROXY_URL;
+  });
+
+  it("handles fetchViaProxy when proxy succeeds, fails, or throws", async () => {
+    // 1. Success
+    (fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
+      text: async () => "<html><body>Proxy Content</body></html>",
+    });
+    const successRes = await fetchViaProxy("https://proxy.com/test", {
+      page: 1,
+      username: "user",
+    });
+    expect(successRes).toBe("<html><body>Proxy Content</body></html>");
+
+    // 2. Returns Challenge
+    (fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
+      text: async () => "<title>Just a moment...</title>",
+    });
+    const challengeRes = await fetchViaProxy("https://proxy.com/test");
+    expect(challengeRes).toBeNull();
+
+    // 3. Response not ok
+    (fetch as jest.Mock).mockResolvedValueOnce({
+      ok: false,
+    });
+    const notOkRes = await fetchViaProxy("https://proxy.com/test");
+    expect(notOkRes).toBeNull();
+
+    // 4. Throws error
+    (fetch as jest.Mock).mockRejectedValueOnce(new Error("Proxy error"));
+    const errorRes = await fetchViaProxy("https://proxy.com/test");
+    expect(errorRes).toBeNull();
+  });
+
+  it("uses proxy in fetchMdlHtml when SCRAPER_API_KEY is configured", async () => {
+    process.env.SCRAPER_API_KEY = "my_scraper_key";
+    (fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
+      text: async () => "<html><body>Via ScraperAPI</body></html>",
+    });
+
+    const result = await fetchMdlHtml("https://mydramalist.com/test");
+    expect(result).toBe("<html><body>Via ScraperAPI</body></html>");
+    expect(fetch).toHaveBeenCalledWith(
+      "https://api.scraperapi.com?api_key=my_scraper_key&url=https%3A%2F%2Fmydramalist.com%2Ftest",
+      expect.anything(),
+    );
+    delete process.env.SCRAPER_API_KEY;
   });
 });

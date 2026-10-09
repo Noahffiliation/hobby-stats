@@ -1,3 +1,4 @@
+import { getMdlFallbackStats } from "../mydramalist/route";
 import {
   COMPLETED_REGEX,
   fetchMdlHtml,
@@ -156,6 +157,14 @@ export async function GET() {
   }
   if (totalPlanToWatch === undefined && planToWatch.length > 0) {
     totalPlanToWatch = planToWatch.length;
+  }
+
+  if (totalCompleted === undefined || totalPlanToWatch === undefined) {
+    const fallback = getMdlFallbackStats();
+    if (fallback) {
+      totalCompleted ??= fallback.completed;
+      totalPlanToWatch ??= fallback.planToWatch;
+    }
   }
 
   return Response.json({

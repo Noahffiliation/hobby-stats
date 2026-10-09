@@ -17,10 +17,52 @@ export function getMdlCookie(): string | undefined {
   return process.env.MDL_COOKIE || process.env.NEXT_PUBLIC_MDL_COOKIE;
 }
 
+export function getMdlProxyUrl(targetUrl: string): string | null {
+  const customProxy =
+    process.env.MDL_PROXY_URL || process.env.NEXT_PUBLIC_MDL_PROXY_URL;
+  if (customProxy) {
+    return customProxy.includes("{url}")
+      ? customProxy.replace("{url}", encodeURIComponent(targetUrl))
+      : `${customProxy}${encodeURIComponent(targetUrl)}`;
+  }
+
+  const scraperApiKey =
+    process.env.SCRAPER_API_KEY || process.env.NEXT_PUBLIC_SCRAPER_API_KEY;
+  if (scraperApiKey) {
+    return `https://api.scraperapi.com?api_key=${scraperApiKey}&url=${encodeURIComponent(targetUrl)}`;
+  }
+
+  return null;
+}
+
+export async function fetchViaProxy(
+  proxyUrl: string,
+  postJson?: { page: number; username: string },
+): Promise<string | null> {
+  try {
+    const res = await fetch(proxyUrl, {
+      method: postJson ? "POST" : "GET",
+      headers: postJson ? { "Content-Type": "application/json" } : undefined,
+      body: postJson ? JSON.stringify(postJson) : undefined,
+    });
+    if (!res.ok) return null;
+    const text = await res.text();
+    return text.includes("Just a moment...") ? null : text;
+  } catch {
+    return null;
+  }
+}
+
 export async function fetchMdlHtml(
   url: string,
   postJson?: { page: number; username: string },
 ): Promise<string | null> {
+  const proxyUrl = getMdlProxyUrl(url);
+  if (proxyUrl) {
+    const proxyHtml = await fetchViaProxy(proxyUrl, postJson);
+    if (proxyHtml) return proxyHtml;
+  }
+
   const cookie = getMdlCookie();
   try {
     const response = await fetch(url, {

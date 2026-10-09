@@ -1,4 +1,9 @@
-import { GET, getBackloggdCookie, getBackloggdUsername } from "../route";
+import {
+  GET,
+  getBackloggdCookie,
+  getBackloggdFallbackStats,
+  getBackloggdUsername,
+} from "../route";
 
 globalThis.fetch = jest.fn();
 
@@ -19,6 +24,46 @@ describe("Backloggd API Route", () => {
     expect(getBackloggdUsername()).toBe("custom_user");
     delete process.env.NEXT_PUBLIC_BACKLOGGD_USERNAME;
     expect(getBackloggdUsername()).toBe("Noahffiliation");
+  });
+
+  it("resolves fallback stats from env or null", () => {
+    delete process.env.BACKLOGGD_PLAYED;
+    delete process.env.NEXT_PUBLIC_BACKLOGGD_PLAYED;
+    delete process.env.BACKLOGGD_BACKLOG;
+    delete process.env.NEXT_PUBLIC_BACKLOGGD_BACKLOG;
+    expect(getBackloggdFallbackStats()).toBeNull();
+
+    process.env.BACKLOGGD_PLAYED = "100";
+    expect(getBackloggdFallbackStats()).toBeNull();
+
+    process.env.BACKLOGGD_BACKLOG = "200";
+    expect(getBackloggdFallbackStats()).toEqual({ played: 100, backlog: 200 });
+
+    delete process.env.BACKLOGGD_PLAYED;
+    delete process.env.BACKLOGGD_BACKLOG;
+    process.env.NEXT_PUBLIC_BACKLOGGD_PLAYED = "abc";
+    process.env.NEXT_PUBLIC_BACKLOGGD_BACKLOG = "200";
+    expect(getBackloggdFallbackStats()).toBeNull();
+
+    process.env.NEXT_PUBLIC_BACKLOGGD_PLAYED = "50";
+    expect(getBackloggdFallbackStats()).toEqual({ played: 50, backlog: 200 });
+    delete process.env.NEXT_PUBLIC_BACKLOGGD_PLAYED;
+    delete process.env.NEXT_PUBLIC_BACKLOGGD_BACKLOG;
+  });
+
+  it("returns fallback stats when scraping fails and fallback env is set", async () => {
+    process.env.BACKLOGGD_PLAYED = "300";
+    process.env.BACKLOGGD_BACKLOG = "400";
+    (fetch as jest.Mock).mockResolvedValueOnce({
+      ok: false,
+    });
+
+    const response = await GET();
+    expect(response.status).toBe(200);
+    const data = await response.json();
+    expect(data).toEqual({ played: 300, backlog: 400 });
+    delete process.env.BACKLOGGD_PLAYED;
+    delete process.env.BACKLOGGD_BACKLOG;
   });
 
   it("resolves cookie from env or undefined", () => {
