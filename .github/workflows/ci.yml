@@ -21,6 +21,7 @@ concurrency:
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 permissions:
+  actions: read
   contents: read
   packages: write
   security-events: write
@@ -28,14 +29,14 @@ permissions:
 jobs:
   node-ci:
     permissions:
+      actions: read
       contents: read
       packages: write
       security-events: write
     uses: Noahffiliation/.github/.github/workflows/reusable-node-ci.yml@6b0a6610257cd5301a9384d74efc991e95a87fbd # v1.3.15
     with:
       node-version: "24.19.0"
-      run-build: true
-      build-output-dir: ".next"
+      run-build: false
       test-docker: true
     secrets:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

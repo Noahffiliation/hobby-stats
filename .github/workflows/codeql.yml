@@ -13,12 +13,14 @@ concurrency:
   cancel-in-progress: true
 
 permissions:
+  actions: read
   contents: read
   security-events: write
 
 jobs:
   security-scan:
     permissions:
+      actions: read
       contents: read
       security-events: write
     uses: Noahffiliation/.github/.github/workflows/reusable-codeql.yml@6b0a6610257cd5301a9384d74efc991e95a87fbd # v1.3.15
