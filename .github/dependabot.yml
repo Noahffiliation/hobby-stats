@@ -13,6 +13,10 @@ updates:
       npm-dependencies:
         patterns:
           - "*"
+    ignore:
+      - dependency-name: "@eslint/js"
+        versions:
+          - "10.x"
 
   - package-ecosystem: "docker"
     directory: "/"
