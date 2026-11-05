@@ -1,24 +1,59 @@
-import coreWebVitals from "eslint-config-next/core-web-vitals";
+import js from "@eslint/js";
+import globals from "globals";
 
-const eslintConfig = [
-  ...coreWebVitals,
+export default [
+  js.configs.recommended,
   {
-    linterOptions: {
-      reportUnusedDisableDirectives: "off",
+    files: ["api/**/*.js", "src/**/*.js", "public/**/*.js", "scripts/**/*.js"],
+    rules: {
+      complexity: ["error", 12],
+      "no-nested-ternary": "error",
+    },
+  },
+  {
+    files: [
+      "api/**/*.js",
+      "src/**/*.js",
+      "scripts/**/*.js",
+      "eslint.config.mjs",
+    ],
+    languageOptions: {
+      ecmaVersion: "latest",
+      sourceType: "module",
+      globals: {
+        ...globals.node,
+      },
+    },
+  },
+  {
+    files: ["public/**/*.js"],
+    languageOptions: {
+      ecmaVersion: "latest",
+      sourceType: "module",
+      globals: {
+        ...globals.browser,
+      },
+    },
+  },
+  {
+    files: ["tests/**/*.js"],
+    languageOptions: {
+      ecmaVersion: "latest",
+      sourceType: "module",
+      globals: {
+        ...globals.node,
+        ...globals.browser,
+      },
     },
   },
   {
     ignores: [
-      ".next/**",
       "node_modules/**",
       "coverage/**",
-      "out/**",
       "build/**",
       "artifacts/**",
       ".scannerwork/**",
-      ".swc/**",
+      ".vercel/**",
     ],
   },
 ];
-
-export default eslintConfig;

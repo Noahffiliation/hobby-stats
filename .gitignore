@@ -1,19 +1,13 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
 # dependencies
 /node_modules
-/.pnp
-.pnp.js
 
 # testing
 /coverage
 
-# next.js
-/.next/
-/out/
-
-# production
+# build / analysis outputs
 /build
+/artifacts
+/.scannerwork
 
 # misc
 .DS_Store
@@ -31,14 +25,9 @@ yarn-error.log*
 # vercel
 .vercel
 
-# typescript
-*.tsbuildinfo
-next-env.d.ts
-
+# local tooling & scans
 .vscode
 workflow.sh
-artifacts/
 container-sbom.spdx.json
 trivy-results.sarif
 grype-results.*
-.scannerwork/

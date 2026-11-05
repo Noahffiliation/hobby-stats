@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Recent Tracks | Hobby Stats</title>
+    <meta name="description" content="Recently scrobbled music on Last.fm." />
+    <link rel="icon" href="/favicon.ico" />
+    <link rel="stylesheet" href="/css/styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a href="#page-title" class="skip-link visually-hidden"
+        >Skip to main content</a
+      >
+      <nav aria-label="Primary">
+        <ul class="nav-list">
+          <li><a class="nav-link" href="/">Home</a></li>
+          <li><a class="nav-link" href="/games">Games</a></li>
+          <li><a class="nav-link" href="/movies">Movies</a></li>
+          <li><a class="nav-link" href="/tv">TV Shows</a></li>
+          <li><a class="nav-link" href="/anime">Anime</a></li>
+          <li><a class="nav-link" href="/dramas">K-Dramas</a></li>
+          <li>
+            <a class="nav-link" href="/lastfm" aria-current="page"
+              >Recent Tracks</a
+            >
+          </li>
+        </ul>
+      </nav>
+    </header>
+
+    <main class="page-main" data-page="lastfm">
+      <div class="page-intro page-intro-spacious">
+        <h1 id="page-title" class="page-title" tabindex="-1">Recent Tracks</h1>
+        <p class="page-subtitle">Recently scrobbled music on Last.fm.</p>
+      </div>
+
+      <div id="status-feedback" class="tab-panel">
+        <div data-testid="loading-state" class="status-loading">
+          Loading recent tracks...
+        </div>
+      </div>
+
+      <div id="tracks-container" class="tab-panel" hidden></div>
+    </main>
+
+    <script type="module" src="/js/pages/lastfm.js"></script>
+    <script defer src="/_vercel/insights/script.js"></script>
+    <script defer src="/_vercel/speed-insights/script.js"></script>
+  </body>
+</html>

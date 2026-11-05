@@ -1,0 +1,8 @@
+node_modules
+coverage
+artifacts
+build
+.scannerwork
+.vercel
+package-lock.json
+

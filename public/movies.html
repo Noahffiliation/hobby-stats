@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Movies | Hobby Stats</title>
+    <meta
+      name="description"
+      content="Tracked movie watchlist and recent viewing history on Trakt."
+    />
+    <link rel="icon" href="/favicon.ico" />
+    <link rel="stylesheet" href="/css/styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a href="#page-title" class="skip-link visually-hidden"
+        >Skip to main content</a
+      >
+      <nav aria-label="Primary">
+        <ul class="nav-list">
+          <li><a class="nav-link" href="/">Home</a></li>
+          <li><a class="nav-link" href="/games">Games</a></li>
+          <li>
+            <a class="nav-link" href="/movies" aria-current="page">Movies</a>
+          </li>
+          <li><a class="nav-link" href="/tv">TV Shows</a></li>
+          <li><a class="nav-link" href="/anime">Anime</a></li>
+          <li><a class="nav-link" href="/dramas">K-Dramas</a></li>
+          <li><a class="nav-link" href="/lastfm">Recent Tracks</a></li>
+        </ul>
+      </nav>
+    </header>
+
+    <main class="page-main" data-page="movies">
+      <div class="page-intro">
+        <h1 id="page-title" class="page-title" tabindex="-1">Movies</h1>
+        <p class="page-subtitle">
+          Tracked movie watchlist and recent viewing history on Trakt.
+        </p>
+      </div>
+
+      <div
+        id="movies-tabs"
+        role="tablist"
+        aria-label="Movie categories"
+        class="tab-list"
+      >
+        <button
+          id="tab-watchlist"
+          type="button"
+          role="tab"
+          class="tab-button"
+          data-tab="watchlist"
+          data-label="Watchlist"
+          aria-selected="true"
+          aria-controls="panel-watchlist"
+          tabindex="0"
+        >
+          Watchlist (0)
+        </button>
+        <button
+          id="tab-recent"
+          type="button"
+          role="tab"
+          class="tab-button"
+          data-tab="recent"
+          data-label="Recently Watched"
+          aria-selected="false"
+          aria-controls="panel-recent"
+          tabindex="-1"
+        >
+          Recently Watched (0)
+        </button>
+      </div>
+
+      <div id="status-feedback" class="tab-panel">
+        <div data-testid="loading-state" class="status-loading">
+          Loading movies...
+        </div>
+      </div>
+
+      <div id="content-panels" class="tab-panel" hidden>
+        <div
+          id="panel-watchlist"
+          role="tabpanel"
+          aria-labelledby="tab-watchlist"
+        ></div>
+        <div
+          id="panel-recent"
+          role="tabpanel"
+          aria-labelledby="tab-recent"
+          hidden
+        ></div>
+      </div>
+    </main>
+
+    <script type="module" src="/js/pages/movies.js"></script>
+    <script defer src="/_vercel/insights/script.js"></script>
+    <script defer src="/_vercel/speed-insights/script.js"></script>
+  </body>
+</html>
