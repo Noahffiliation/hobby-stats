@@ -399,7 +399,7 @@ describe("MyDramaList & Dramas endpoints", () => {
 		process.env.SCRAPER_API_KEY = "sk_exhausted";
 		process.env.MDL_CURL_BIN = "/nonexistent-curl-bin";
 		globalThis.fetch = mock.fn(async (url) => {
-			if (String(url).includes("scraperapi.com")) {
+			if (new URL(String(url)).hostname === "api.scraperapi.com") {
 				return new Response(
 					"You have exhausted the API Credits available in this monthly cycle.",
 					{ status: 403 },
