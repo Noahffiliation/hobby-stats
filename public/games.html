@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Games | Hobby Stats</title>
+    <meta
+      name="description"
+      content="Tracked video game backlog and played history on Backloggd."
+    />
+    <link rel="icon" href="/favicon.ico" />
+    <link rel="stylesheet" href="/css/styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a href="#page-title" class="skip-link visually-hidden"
+        >Skip to main content</a
+      >
+      <nav aria-label="Primary">
+        <ul class="nav-list">
+          <li><a class="nav-link" href="/">Home</a></li>
+          <li>
+            <a class="nav-link" href="/games" aria-current="page">Games</a>
+          </li>
+          <li><a class="nav-link" href="/movies">Movies</a></li>
+          <li><a class="nav-link" href="/tv">TV Shows</a></li>
+          <li><a class="nav-link" href="/anime">Anime</a></li>
+          <li><a class="nav-link" href="/dramas">K-Dramas</a></li>
+          <li><a class="nav-link" href="/lastfm">Recent Tracks</a></li>
+        </ul>
+      </nav>
+    </header>
+
+    <main class="page-main" data-page="games">
+      <div class="page-intro">
+        <h1 id="page-title" class="page-title" tabindex="-1">Games</h1>
+        <p class="page-subtitle">
+          Tracked video game backlog and played history on Backloggd.
+        </p>
+      </div>
+
+      <div
+        id="games-tabs"
+        role="tablist"
+        aria-label="Game categories"
+        class="tab-list"
+      >
+        <button
+          id="tab-backlog"
+          type="button"
+          role="tab"
+          class="tab-button"
+          data-tab="backlog"
+          data-label="Backlog"
+          aria-selected="true"
+          aria-controls="panel-backlog"
+          tabindex="0"
+        >
+          Backlog
+        </button>
+        <button
+          id="tab-played"
+          type="button"
+          role="tab"
+          class="tab-button"
+          data-tab="played"
+          data-label="Played / Reviews"
+          aria-selected="false"
+          aria-controls="panel-played"
+          tabindex="-1"
+        >
+          Played / Reviews
+        </button>
+      </div>
+
+      <div id="status-feedback" class="tab-panel">
+        <div data-testid="loading-state" class="status-loading">
+          Loading games...
+        </div>
+      </div>
+
+      <div id="content-panels" class="tab-panel" hidden>
+        <div
+          id="panel-backlog"
+          role="tabpanel"
+          aria-labelledby="tab-backlog"
+        ></div>
+        <div
+          id="panel-played"
+          role="tabpanel"
+          aria-labelledby="tab-played"
+          hidden
+        ></div>
+      </div>
+    </main>
+
+    <script type="module" src="/js/pages/games.js"></script>
+    <script defer src="/_vercel/insights/script.js"></script>
+    <script defer src="/_vercel/speed-insights/script.js"></script>
+  </body>
+</html>

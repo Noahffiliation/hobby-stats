@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>K-Dramas | Hobby Stats</title>
+    <meta
+      name="description"
+      content="Tracked drama watchlist and completed history on MyDramaList."
+    />
+    <link rel="icon" href="/favicon.ico" />
+    <link rel="stylesheet" href="/css/styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a href="#page-title" class="skip-link visually-hidden"
+        >Skip to main content</a
+      >
+      <nav aria-label="Primary">
+        <ul class="nav-list">
+          <li><a class="nav-link" href="/">Home</a></li>
+          <li><a class="nav-link" href="/games">Games</a></li>
+          <li><a class="nav-link" href="/movies">Movies</a></li>
+          <li><a class="nav-link" href="/tv">TV Shows</a></li>
+          <li><a class="nav-link" href="/anime">Anime</a></li>
+          <li>
+            <a class="nav-link" href="/dramas" aria-current="page">K-Dramas</a>
+          </li>
+          <li><a class="nav-link" href="/lastfm">Recent Tracks</a></li>
+        </ul>
+      </nav>
+    </header>
+
+    <main class="page-main" data-page="dramas">
+      <div class="page-intro">
+        <h1 id="page-title" class="page-title" tabindex="-1">
+          K-Dramas &amp; Asian Media
+        </h1>
+        <p class="page-subtitle">
+          Tracked drama watchlist and completed history on MyDramaList.
+        </p>
+      </div>
+
+      <div
+        id="dramas-tabs"
+        role="tablist"
+        aria-label="Drama categories"
+        class="tab-list"
+      >
+        <button
+          id="tab-plan-to-watch"
+          type="button"
+          role="tab"
+          class="tab-button"
+          data-tab="planToWatch"
+          data-label="Plan to Watch"
+          aria-selected="true"
+          aria-controls="panel-plan-to-watch"
+          tabindex="0"
+        >
+          Plan to Watch
+        </button>
+        <button
+          id="tab-completed"
+          type="button"
+          role="tab"
+          class="tab-button"
+          data-tab="completed"
+          data-label="Completed"
+          aria-selected="false"
+          aria-controls="panel-completed"
+          tabindex="-1"
+        >
+          Completed
+        </button>
+      </div>
+
+      <div id="status-feedback" class="tab-panel">
+        <div data-testid="loading-state" class="status-loading">
+          Loading K-dramas...
+        </div>
+      </div>
+
+      <div id="content-panels" class="tab-panel" hidden>
+        <div
+          id="panel-plan-to-watch"
+          role="tabpanel"
+          aria-labelledby="tab-plan-to-watch"
+        ></div>
+        <div
+          id="panel-completed"
+          role="tabpanel"
+          aria-labelledby="tab-completed"
+          hidden
+        ></div>
+      </div>
+    </main>
+
+    <script type="module" src="/js/pages/dramas.js"></script>
+    <script defer src="/_vercel/insights/script.js"></script>
+    <script defer src="/_vercel/speed-insights/script.js"></script>
+  </body>
+</html>

@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hobby Stats | Media &amp; Music Tracker</title>
+    <meta
+      name="description"
+      content="Personal media stats tracker for Trakt.tv movies, TV shows, Backloggd games, anime, K-dramas, and Last.fm scrobbles"
+    />
+    <link rel="icon" href="/favicon.ico" />
+    <link rel="stylesheet" href="/css/styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a href="#page-title" class="skip-link visually-hidden"
+        >Skip to main content</a
+      >
+      <nav aria-label="Primary">
+        <ul class="nav-list">
+          <li><a class="nav-link" href="/" aria-current="page">Home</a></li>
+          <li><a class="nav-link" href="/games">Games</a></li>
+          <li><a class="nav-link" href="/movies">Movies</a></li>
+          <li><a class="nav-link" href="/tv">TV Shows</a></li>
+          <li><a class="nav-link" href="/anime">Anime</a></li>
+          <li><a class="nav-link" href="/dramas">K-Dramas</a></li>
+          <li><a class="nav-link" href="/lastfm">Recent Tracks</a></li>
+        </ul>
+      </nav>
+    </header>
+
+    <main class="page-main page-main-home" data-page="home">
+      <div class="page-intro page-intro-home">
+        <h1 id="page-title" class="page-title page-title-hero" tabindex="-1">
+          Media Progress Dashboard
+        </h1>
+        <p class="page-subtitle">
+          Tracking watched vs. watchlist progress across games, movies, TV
+          series, anime, and K-dramas.
+        </p>
+      </div>
+
+      <div id="status-feedback" class="tab-panel">
+        <div data-testid="loading-state" class="status-loading">
+          Loading stats...
+        </div>
+      </div>
+
+      <div id="dashboard-panel" class="dashboard-panel" hidden></div>
+    </main>
+
+    <script type="module" src="/js/pages/home.js"></script>
+    <script defer src="/_vercel/insights/script.js"></script>
+    <script defer src="/_vercel/speed-insights/script.js"></script>
+  </body>
+</html>
