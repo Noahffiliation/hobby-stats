@@ -1,4 +1,4 @@
-FROM node:26.12.1-alpine3.24 AS runner
+FROM node:26.13.0-alpine3.24 AS runner
 RUN apk upgrade --no-cache && \
     apk add --no-cache curl && \
     rm -rf \
