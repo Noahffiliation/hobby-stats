@@ -162,6 +162,15 @@ describe("HTTP server & static/API router", () => {
 		globalThis.fetch = async () =>
 			Response.json({ movies: { watched: 10 }, recenttracks: { track: [] } });
 		try {
+			const traktProfileOk = await originalFetch(
+				`${baseUrl}/api/trakt?endpoint=profile`,
+			);
+			assert.equal(traktProfileOk.status, 200);
+			assert.equal(
+				(await traktProfileOk.json()).profileUrl,
+				"https://og.trakt.tv/users/noahffiliation",
+			);
+
 			const traktOk = await originalFetch(
 				`${baseUrl}/api/trakt?endpoint=stats`,
 			);

@@ -7,6 +7,25 @@ import {
 } from "../src/lib/backloggd-utils.js";
 import { parseCountMatch } from "../src/lib/mal-utils.js";
 import { jsonOk } from "../src/lib/response.js";
+import { resolveOriginUrl } from "../src/lib/url-utils.js";
+
+const BACKLOGGD_ORIGIN = "https://backloggd.com";
+
+function extractBackloggdGameUrl(section, previousSection = "") {
+	const withoutTrailingOpenAnchor = section.replace(/<a\b[^>]*>\s*$/i, "");
+	const innerMatch = /href="(\/games\/[^/"]+\/?)"/i.exec(
+		withoutTrailingOpenAnchor,
+	);
+	if (innerMatch) {
+		return resolveOriginUrl(innerMatch[1], BACKLOGGD_ORIGIN);
+	}
+	const outerMatch = /<a\b[^>]*href="(\/games\/[^/"]+\/?)"[^>]*>\s*$/i.exec(
+		previousSection,
+	);
+	return outerMatch
+		? resolveOriginUrl(outerMatch[1], BACKLOGGD_ORIGIN)
+		: undefined;
+}
 
 function cleanGameTitle(raw) {
 	return raw
@@ -37,11 +56,15 @@ export function parseBacklogHtml(html) {
 
 	const backlog = [];
 	const seen = new Set();
-	const matches = html.matchAll(
-		/<div class="[^"]*game-cover[^"]*"[^>]*>[\s\S]*?<img [^>]*alt="([^"]+)"/gi,
-	);
-	for (const m of matches) {
-		pushUniqueByTitle(backlog, seen, { title: cleanGameTitle(m[1]) });
+	const sections = html.split(/<div class="[^"]*game-cover[^"]*"[^>]*>/i);
+	for (let i = 1; i < sections.length; i++) {
+		const titleMatch = /<img[^>]*alt="([^"]+)"/i.exec(sections[i]);
+		if (!titleMatch) continue;
+		const url = extractBackloggdGameUrl(sections[i], sections[i - 1]);
+		pushUniqueByTitle(backlog, seen, {
+			title: cleanGameTitle(titleMatch[1]),
+			...(url ? { url } : {}),
+		});
 	}
 	return backlog;
 }
@@ -50,6 +73,7 @@ export function parseReviewCard(sec) {
 	const titleMatch = /<img[^>]*alt="([^"]+)"/i.exec(sec);
 	if (!titleMatch) return null;
 
+	const url = extractBackloggdGameUrl(sec);
 	const statusMatch = /<p class="mb-0 play-type [^"]*">([^<]+)<\/p>/i.exec(sec);
 	const platformMatch =
 		/class="[^"]*review-platform"[^>]*><p class="mb-0">([^<]+)<\/p>/i.exec(sec);
@@ -57,6 +81,7 @@ export function parseReviewCard(sec) {
 
 	return {
 		title: cleanGameTitle(titleMatch[1]),
+		...(url ? { url } : {}),
 		status: statusMatch ? statusMatch[1].trim() : undefined,
 		platform: platformMatch ? platformMatch[1].trim() : undefined,
 		date: dateMatch ? dateMatch[1].trim() : undefined,
@@ -119,6 +144,7 @@ export async function GET() {
 	const played = aggregatePlayedGames(validReviewsHtmls);
 
 	return jsonOk({
+		profileUrl: `${BACKLOGGD_ORIGIN}/u/${username}/`,
 		totalBacklog: stats.totalBacklog,
 		totalPlayed: stats.totalPlayed,
 		backlog,

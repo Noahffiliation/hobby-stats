@@ -39,7 +39,16 @@ describe("api/trakt", () => {
 		assert.equal(getTraktHeaders()["trakt-api-key"], "srv_key");
 	});
 
-	it("handles stats, watched-shows (with and without header), recent-movies, and recent-episodes", async () => {
+	it("handles profile, stats, watched-shows (with and without header), recent-movies, and recent-episodes", async () => {
+		const profileRes = await getTrakt(
+			new Request("http://localhost/api/trakt?endpoint=profile"),
+		);
+		assert.equal(profileRes.status, 200);
+		assert.deepEqual(await profileRes.json(), {
+			username: "noahffiliation",
+			profileUrl: "https://og.trakt.tv/users/noahffiliation",
+		});
+
 		globalThis.fetch = mock.fn(async (url) => {
 			if (url.endsWith("/stats")) {
 				return Response.json({ movies: { watched: 42 } });
@@ -194,6 +203,7 @@ describe("api/lastfm", () => {
 		assert.equal(okRes.status, 200);
 		assert.deepEqual(await okRes.json(), {
 			recenttracks: { track: [{ name: "Song" }] },
+			profileUrl: "https://www.last.fm/user/srv_fm",
 		});
 
 		globalThis.fetch = mock.fn(

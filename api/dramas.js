@@ -2,8 +2,22 @@ import {
 	collectMdlPages,
 	fetchMdlOverview,
 	getMdlFallbackStats,
+	getMdlUsername,
 } from "../src/lib/mydramalist-utils.js";
 import { jsonOk } from "../src/lib/response.js";
+import { resolveOriginUrl } from "../src/lib/url-utils.js";
+
+const MDL_ORIGIN = "https://mydramalist.com";
+
+function extractDramaUrl(rowHtml) {
+	const cellMatch =
+		/<td[^>]*class="[^"]*msv2-i-title[^"]*"[^>]*>([\s\S]*?)<\/td>/i.exec(
+			rowHtml,
+		) || /<div class="msv2-item--title">([\s\S]*?)<\/div>/i.exec(rowHtml);
+	if (!cellMatch) return undefined;
+	const hrefMatch = /<a[^>]*href="([^"]+)"/i.exec(cellMatch[1]);
+	return hrefMatch ? resolveOriginUrl(hrefMatch[1], MDL_ORIGIN) : undefined;
+}
 
 function decodeHtmlEntities(str) {
 	return str
@@ -28,6 +42,7 @@ export function parseSingleDramaRow(rowHtml) {
 	if (!titleMatch) return null;
 
 	const title = decodeHtmlEntities(titleMatch[1].trim());
+	const url = extractDramaUrl(rowHtml);
 	const yearMatch = /<td class="msv2-i-year">([^<]+)<\/td>/i.exec(rowHtml);
 	const typeMatch = /<td class="msv2-i-type">([^<]+)<\/td>/i.exec(rowHtml);
 	const countryMatch = /<td class="msv2-i-country">([^<]+)<\/td>/i.exec(
@@ -55,6 +70,7 @@ export function parseSingleDramaRow(rowHtml) {
 
 	return {
 		title,
+		...(url ? { url } : {}),
 		year: yearMatch ? yearMatch[1].trim() : undefined,
 		type: typeMatch ? typeMatch[1].trim() : undefined,
 		country: countryMatch ? countryMatch[1].trim() : undefined,
@@ -107,7 +123,10 @@ export async function GET() {
 		fallback?.planToWatch,
 	);
 
+	const username = encodeURIComponent(getMdlUsername());
+
 	return jsonOk({
+		profileUrl: `${MDL_ORIGIN}/profile/${username}`,
 		totalPlanToWatch,
 		totalCompleted,
 		planToWatch,

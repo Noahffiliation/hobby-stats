@@ -13,6 +13,7 @@ function createDramaPrimary(doc, item, trailingNode = null) {
 	return createTitleRow(
 		doc,
 		item.title,
+		item.url,
 		item.year
 			? createElement(doc, "span", {
 					className: "media-meta",

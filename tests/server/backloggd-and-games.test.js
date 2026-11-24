@@ -20,6 +20,7 @@ import {
 	sharedBackloggdCookieJar,
 	solveAnubisPoW,
 } from "../../src/lib/backloggd-utils.js";
+import { resolveOriginUrl } from "../../src/lib/url-utils.js";
 
 describe("backloggd-utils", () => {
 	const savedEnv = { ...process.env };
@@ -256,6 +257,20 @@ describe("api/backloggd and api/games", () => {
 	});
 
 	it("parses games backlog, review cards, deduplication, and /api/games endpoint", async () => {
+		assert.equal(resolveOriginUrl(null, "https://backloggd.com"), undefined);
+		assert.equal(
+			resolveOriginUrl("/games/elden-ring/", "https://backloggd.com"),
+			"https://backloggd.com/games/elden-ring/",
+		);
+		assert.equal(
+			resolveOriginUrl("https://evil.example/x", "https://backloggd.com"),
+			undefined,
+		);
+		assert.equal(
+			resolveOriginUrl("http://[::1", "https://backloggd.com"),
+			undefined,
+		);
+
 		assert.deepEqual(parseProfileStats(sampleProfile), {
 			totalPlayed: 1234,
 			totalBacklog: 56,
@@ -265,21 +280,36 @@ describe("api/backloggd and api/games", () => {
 		assert.equal(parseReviewCard("<div>no img</div>"), null);
 
 		const backlogHtml = `
+			<div class="card game-cover"><div>missing image</div></div>
+			<div class="card game-cover">
+				<a class="cover-link" href="/games/baldurs-gate-3/"></a>
+				<img src="a.jpg" alt="Baldur&#39;s Gate 3">
+			</div>
 			<div class="card game-cover"><img src="a.jpg" alt="Baldur&#39;s Gate 3"></div>
-			<div class="card game-cover"><img src="a.jpg" alt="Baldur&#39;s Gate 3"></div>
-			<div class="card game-cover"><img src="b.jpg" alt="Hades &amp; More"></div>
+			<a href="/games/hades/"><div class="card game-cover"><img src="b.jpg" alt="Hades &amp; More"></div></a>
+			<div class="card game-cover"><img src="c.jpg" alt="Plain Game"><a href="/games/lib/popular">Lib</a></div>
 		`;
 		assert.deepEqual(parseBacklogHtml(backlogHtml), [
-			{ title: "Baldur's Gate 3" },
-			{ title: "Hades & More" },
+			{
+				title: "Baldur's Gate 3",
+				url: "https://backloggd.com/games/baldurs-gate-3/",
+			},
+			{
+				title: "Hades & More",
+				url: "https://backloggd.com/games/hades/",
+			},
+			{ title: "Plain Game" },
 		]);
 
 		const reviewsHtml = `
 			<div class="review-card">
-				<img alt="Elden Ring">
+				<a href="/games/elden-ring/"><img alt="Elden Ring"></a>
 				<p class="mb-0 play-type completed">Completed</p>
 				<div class="review-platform"><p class="mb-0">PC</p></div>
 				<time>Oct 10, 2026</time>
+			</div>
+			<div class="review-card">
+				<img alt="Unlinked Game">
 			</div>
 			<div class="review-card">
 				<div>no title card</div>
@@ -291,9 +321,16 @@ describe("api/backloggd and api/games", () => {
 		assert.deepEqual(aggregatePlayedGames([reviewsHtml, reviewsHtml]), [
 			{
 				title: "Elden Ring",
+				url: "https://backloggd.com/games/elden-ring/",
 				status: "Completed",
 				platform: "PC",
 				date: "Oct 10, 2026",
+			},
+			{
+				title: "Unlinked Game",
+				status: undefined,
+				platform: undefined,
+				date: undefined,
 			},
 		]);
 
@@ -331,10 +368,14 @@ describe("api/backloggd and api/games", () => {
 		const gamesRes = await getGames();
 		assert.equal(gamesRes.status, 200);
 		const gamesJson = await gamesRes.json();
+		assert.equal(
+			gamesJson.profileUrl,
+			"https://backloggd.com/u/Noahffiliation/",
+		);
 		assert.equal(gamesJson.totalPlayed, 99);
 		assert.equal(gamesJson.totalBacklog, 44);
-		assert.equal(gamesJson.backlog.length, 2);
-		assert.equal(gamesJson.played.length, 1);
+		assert.equal(gamesJson.backlog.length, 3);
+		assert.equal(gamesJson.played.length, 2);
 
 		// Upstream 500 -> null profileHtml & null backlogHtml without fallback
 		delete process.env.BACKLOGGD_PLAYED;
@@ -344,6 +385,7 @@ describe("api/backloggd and api/games", () => {
 		);
 		const emptyGamesRes = await getGames();
 		assert.deepEqual(await emptyGamesRes.json(), {
+			profileUrl: "https://backloggd.com/u/Noahffiliation/",
 			backlog: [],
 			played: [],
 		});

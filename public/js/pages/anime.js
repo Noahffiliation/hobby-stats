@@ -24,6 +24,13 @@ function createEpisodesBadge(doc, episodes) {
 		: null;
 }
 
+function getAnimeUrl(item) {
+	if (item.url) return item.url;
+	return item.id
+		? `https://myanimelist.net/anime/${encodeURIComponent(item.id)}`
+		: undefined;
+}
+
 export async function initAnimePage(
 	doc = globalThis.document,
 	api = defaultApi,
@@ -39,7 +46,12 @@ export async function initAnimePage(
 			createMediaItem(
 				d,
 				false,
-				createTitleRow(d, item.title, createAnimeTypeMeta(d, item.mediaType)),
+				createTitleRow(
+					d,
+					item.title,
+					getAnimeUrl(item),
+					createAnimeTypeMeta(d, item.mediaType),
+				),
 				createEpisodesBadge(d, item.episodes),
 			),
 		renderSecondItem: (d, item) =>
@@ -49,6 +61,7 @@ export async function initAnimePage(
 				createTitleRow(
 					d,
 					item.title,
+					getAnimeUrl(item),
 					createAnimeTypeMeta(d, item.mediaType),
 					createEpisodesBadge(d, item.episodes),
 				),

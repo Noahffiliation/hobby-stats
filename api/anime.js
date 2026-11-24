@@ -4,13 +4,22 @@ import {
 	parseMalProfileCounts,
 } from "../src/lib/mal-utils.js";
 import { jsonError, jsonOk } from "../src/lib/response.js";
+import { resolveOriginUrl } from "../src/lib/url-utils.js";
+
+const MAL_ORIGIN = "https://myanimelist.net";
 
 function mapBaseAnime(item) {
+	const url =
+		resolveOriginUrl(item.anime_url, MAL_ORIGIN) ??
+		(item.anime_id
+			? `${MAL_ORIGIN}/anime/${encodeURIComponent(item.anime_id)}`
+			: undefined);
 	return {
 		id: item.anime_id,
 		title: item.anime_title_eng || item.anime_title,
 		episodes: item.anime_num_episodes,
 		mediaType: item.anime_media_type_string,
+		...(url ? { url } : {}),
 	};
 }
 
@@ -50,6 +59,7 @@ export async function GET() {
 			}
 
 			return jsonOk({
+				profileUrl: `${MAL_ORIGIN}/profile/${username}`,
 				totalPlanToWatch,
 				totalCompleted,
 				planToWatch: ptwData.map(mapBaseAnime),

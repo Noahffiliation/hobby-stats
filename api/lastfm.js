@@ -32,7 +32,10 @@ export async function GET() {
 		}
 
 		const data = await response.json();
-		return jsonOk(data);
+		return jsonOk({
+			...data,
+			profileUrl: `https://www.last.fm/user/${username}`,
+		});
 	} catch {
 		return jsonError("Failed to fetch Last.fm stats", 502);
 	}

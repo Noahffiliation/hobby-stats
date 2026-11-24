@@ -75,8 +75,12 @@ describe("MyAnimeList & Anime endpoints", () => {
 					{
 						anime_id: 1,
 						anime_title: "Frieren",
+						anime_url: "/anime/1/Frieren",
 						anime_num_episodes: 28,
 						anime_media_type_string: "TV",
+					},
+					{
+						anime_title: "Unlinked Entry",
 					},
 				]);
 			}
@@ -99,10 +103,20 @@ describe("MyAnimeList & Anime endpoints", () => {
 		const animeRes = await getAnime();
 		assert.equal(animeRes.status, 200);
 		const animeJson = await animeRes.json();
+		assert.equal(
+			animeJson.profileUrl,
+			"https://myanimelist.net/profile/mal_custom",
+		);
 		assert.equal(animeJson.totalCompleted, 1050);
 		assert.equal(animeJson.totalPlanToWatch, 320);
 		assert.equal(animeJson.planToWatch[0].title, "Frieren");
+		assert.equal(
+			animeJson.planToWatch[0].url,
+			"https://myanimelist.net/anime/1/Frieren",
+		);
+		assert.equal(animeJson.planToWatch[1].url, undefined);
 		assert.equal(animeJson.completed[0].title, "Attack on Titan");
+		assert.equal(animeJson.completed[0].url, "https://myanimelist.net/anime/2");
 
 		// /api/anime when profile returns 200 without counts & when profile returns 404
 		globalThis.fetch = mock.fn(async (url) => {
@@ -295,11 +309,17 @@ describe("MyDramaList & Dramas endpoints", () => {
 		);
 
 		assert.equal(parseSingleDramaRow("<td>empty</td>"), null);
+		assert.equal(
+			parseSingleDramaRow(
+				'<td class="msv2-i-title"><a title="Unclosed">Link</a>',
+			)?.url,
+			undefined,
+		);
 		assert.deepEqual(parseMdlRows(null), []);
 
 		const tableHtml = `
 			<tr id="ml1">
-				<td class="msv2-i-title"><a title="Crash Landing &amp; You">Link</a></td>
+				<td class="msv2-i-title"><a href="/35729-crash-landing" title="Crash Landing &amp; You">Link</a></td>
 				<td class="msv2-i-year">2019</td>
 				<td class="msv2-i-type">Drama</td>
 				<td class="msv2-i-country">South Korea</td>
@@ -310,15 +330,19 @@ describe("MyDramaList & Dramas endpoints", () => {
 				<td><div class="msv2-item--title"><a href="/x">Moving</a></div></td>
 				<td class="msv2-i-score"><span class="score">0.0</span></td>
 			</tr>
+			<tr id="ml4">
+				<td class="msv2-i-title"><a title="No Href Drama">Link</a></td>
+			</tr>
 			<tr id="ml3">
 				<td>empty row skipped</td>
 			</tr>
 		`;
 
 		const rows = parseMdlRows(tableHtml);
-		assert.equal(rows.length, 2);
+		assert.equal(rows.length, 3);
 		assert.deepEqual(rows[0], {
 			title: "Crash Landing & You",
+			url: "https://mydramalist.com/35729-crash-landing",
 			year: "2019",
 			type: "Drama",
 			country: "South Korea",
@@ -326,7 +350,10 @@ describe("MyDramaList & Dramas endpoints", () => {
 			score: 9.5,
 		});
 		assert.equal(rows[1].title, "Moving");
+		assert.equal(rows[1].url, "https://mydramalist.com/x");
 		assert.equal(rows[1].score, undefined);
+		assert.equal(rows[2].title, "No Href Drama");
+		assert.equal(rows[2].url, undefined);
 
 		// Multi-page collectMdlPages: page 1 has 100 items, page 2 has 0 items, plus null HTML case
 		let pageCalls = 0;
@@ -373,10 +400,14 @@ describe("MyDramaList & Dramas endpoints", () => {
 		const dramasRes = await getDramas();
 		assert.equal(dramasRes.status, 200);
 		const dramasJson = await dramasRes.json();
+		assert.equal(
+			dramasJson.profileUrl,
+			"https://mydramalist.com/profile/Noahffiliation",
+		);
 		assert.equal(dramasJson.totalCompleted, 200);
 		assert.equal(dramasJson.totalPlanToWatch, 50);
-		assert.equal(dramasJson.completed.length, 2);
-		assert.equal(dramasJson.planToWatch.length, 2);
+		assert.equal(dramasJson.completed.length, 3);
+		assert.equal(dramasJson.planToWatch.length, 3);
 
 		// Fallback to row counting when profile HTML lacks summary counts (both >0 and 0 rows)
 		globalThis.fetch = mock.fn(async (url) => {
@@ -391,7 +422,7 @@ describe("MyDramaList & Dramas endpoints", () => {
 		assert.equal((await getMyDramaList()).status, 502);
 
 		const partialDramasJson = await (await getDramas()).json();
-		assert.equal(partialDramasJson.totalCompleted, 2);
+		assert.equal(partialDramasJson.totalCompleted, 3);
 		assert.equal(partialDramasJson.totalPlanToWatch, undefined);
 
 		// ScraperAPI 403 credit exhaustion + Cloudflare block -> env fallback & 502
@@ -424,6 +455,7 @@ describe("MyDramaList & Dramas endpoints", () => {
 		const blockedDramasWithFallback = await getDramas();
 		assert.equal(blockedDramasWithFallback.status, 200);
 		assert.deepEqual(await blockedDramasWithFallback.json(), {
+			profileUrl: "https://mydramalist.com/profile/Noahffiliation",
 			totalPlanToWatch: 18,
 			totalCompleted: 42,
 			planToWatch: [],

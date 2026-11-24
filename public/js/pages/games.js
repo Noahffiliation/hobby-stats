@@ -2,8 +2,8 @@ import * as defaultApi from "../api.js";
 import {
 	bootPage,
 	createBadge,
-	createElement,
 	createMediaItem,
+	createMediaTitle,
 	createTimestamp,
 	createTitleRow,
 	runCollectionPage,
@@ -30,10 +30,7 @@ export async function initGamesPage(
 			createMediaItem(
 				d,
 				false,
-				createElement(d, "span", {
-					className: "media-title",
-					text: item.title,
-				}),
+				createMediaTitle(d, item.title, item.url),
 				item.platform ? createBadge(d, item.platform) : null,
 			),
 		renderSecondItem: (d, item) =>
@@ -43,6 +40,7 @@ export async function initGamesPage(
 				createTitleRow(
 					d,
 					item.title,
+					item.url,
 					item.status ? createBadge(d, item.status, "emerald") : null,
 					item.platform ? createBadge(d, item.platform) : null,
 				),

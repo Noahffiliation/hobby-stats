@@ -79,6 +79,7 @@ const API_ROUTES = new Map([
 ]);
 
 const TRAKT_CANONICAL_URLS = new Map([
+	["profile", "http://localhost/api/trakt?endpoint=profile"],
 	["stats", "http://localhost/api/trakt?endpoint=stats"],
 	["watched-shows", "http://localhost/api/trakt?endpoint=watched-shows"],
 	["watchlist-movies", "http://localhost/api/trakt?endpoint=watchlist-movies"],

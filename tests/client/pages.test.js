@@ -18,18 +18,42 @@ function loadHtmlDom(filename) {
 }
 
 describe("Static HTML pages & Vanilla JS page modules", () => {
-	it("validates landmarks, active nav link, skip link, and Vercel scripts across all 7 HTML files", () => {
+	it("validates landmarks, active nav link, skip link, profile links, and Vercel scripts across all 7 HTML files", () => {
 		const pages = [
 			{ file: "index.html", href: "/" },
-			{ file: "games.html", href: "/games" },
-			{ file: "movies.html", href: "/movies" },
-			{ file: "tv.html", href: "/tv" },
-			{ file: "anime.html", href: "/anime" },
-			{ file: "dramas.html", href: "/dramas" },
-			{ file: "lastfm.html", href: "/lastfm" },
+			{
+				file: "games.html",
+				href: "/games",
+				profileHref: "https://backloggd.com/u/Noahffiliation/",
+			},
+			{
+				file: "movies.html",
+				href: "/movies",
+				profileHref: "https://og.trakt.tv/users/noahffiliation",
+			},
+			{
+				file: "tv.html",
+				href: "/tv",
+				profileHref: "https://og.trakt.tv/users/noahffiliation",
+			},
+			{
+				file: "anime.html",
+				href: "/anime",
+				profileHref: "https://myanimelist.net/profile/Noahffiliation",
+			},
+			{
+				file: "dramas.html",
+				href: "/dramas",
+				profileHref: "https://mydramalist.com/profile/Noahffiliation",
+			},
+			{
+				file: "lastfm.html",
+				href: "/lastfm",
+				profileHref: "https://www.last.fm/user/noahffiliation",
+			},
 		];
 
-		for (const { file, href } of pages) {
+		for (const { file, href, profileHref } of pages) {
 			const dom = loadHtmlDom(file);
 			const doc = dom.window.document;
 
@@ -45,6 +69,13 @@ describe("Static HTML pages & Vanilla JS page modules", () => {
 			const currentLinks = doc.querySelectorAll('nav a[aria-current="page"]');
 			assert.equal(currentLinks.length, 1);
 			assert.equal(currentLinks[0].getAttribute("href"), href);
+
+			if (profileHref) {
+				const profileLink = doc.getElementById("profile-link");
+				assert.equal(profileLink?.getAttribute("href"), profileHref);
+				assert.equal(profileLink?.getAttribute("target"), "_blank");
+				assert.equal(profileLink?.getAttribute("rel"), "noopener noreferrer");
+			}
 
 			assert.ok(doc.querySelector('script[src="/_vercel/insights/script.js"]'));
 			assert.ok(
@@ -148,15 +179,21 @@ describe("Static HTML pages & Vanilla JS page modules", () => {
 
 			await initGamesPage(doc, {
 				getGamesList: async () => ({
+					profileUrl: "https://backloggd.com/u/custom_gamer/",
 					totalBacklog: 5,
 					totalPlayed: 10,
 					backlog: [
-						{ title: "Hollow Knight", platform: "Switch" },
+						{
+							title: "Hollow Knight",
+							url: "https://backloggd.com/games/hollow-knight/",
+							platform: "Switch",
+						},
 						{ title: "Silksong" },
 					],
 					played: [
 						{
 							title: "Celeste",
+							url: "https://backloggd.com/games/celeste/",
 							status: "Completed",
 							platform: "PC",
 							date: "Jan 1, 2026",
@@ -167,12 +204,20 @@ describe("Static HTML pages & Vanilla JS page modules", () => {
 			});
 
 			assert.equal(
+				doc.getElementById("profile-link")?.getAttribute("href"),
+				"https://backloggd.com/u/custom_gamer/",
+			);
+			assert.equal(
 				doc.getElementById("tab-backlog")?.textContent,
 				"Backlog (5)",
 			);
 			assert.equal(
 				doc.getElementById("tab-played")?.textContent,
 				"Played / Reviews (10)",
+			);
+			assert.equal(
+				doc.querySelector("#panel-backlog a")?.getAttribute("href"),
+				"https://backloggd.com/games/hollow-knight/",
 			);
 			assert.match(
 				doc.getElementById("panel-backlog")?.textContent ?? "",
@@ -181,6 +226,10 @@ describe("Static HTML pages & Vanilla JS page modules", () => {
 
 			doc.getElementById("tab-played")?.click();
 			assert.equal(doc.getElementById("panel-played")?.hidden, false);
+			assert.equal(
+				doc.querySelector("#panel-played a")?.getAttribute("href"),
+				"https://backloggd.com/games/celeste/",
+			);
 			assert.match(
 				doc.getElementById("panel-played")?.textContent ?? "",
 				/Celeste/,
@@ -219,14 +268,28 @@ describe("Static HTML pages & Vanilla JS page modules", () => {
 			const mDoc = moviesDom.window.document;
 
 			await initMoviesPage(mDoc, {
+				getTraktProfile: async () => ({
+					profileUrl: "https://og.trakt.tv/users/custom_movie_fan",
+				}),
 				getWatchlistMovies: async () => [
-					{ movie: { title: "First Added" } },
-					{ movie: { title: "Latest Added", year: 2025 } },
+					{ movie: { title: "First Added", ids: { trakt: 99 } } },
+					{ movie: { title: "No Id Movie" } },
+					{
+						movie: {
+							title: "Latest Added",
+							year: 2025,
+							ids: { slug: "latest-added-2025" },
+						},
+					},
 				],
 				getRecentMovies: async () => [
 					{
 						id: 1,
-						movie: { title: "Dune: Part Two", year: 2024 },
+						movie: {
+							title: "Dune: Part Two",
+							year: 2024,
+							ids: { slug: "dune-part-two-2024" },
+						},
 						watched_at: "2026-05-01T12:00:00Z",
 					},
 					{
@@ -237,12 +300,27 @@ describe("Static HTML pages & Vanilla JS page modules", () => {
 				],
 			});
 
+			assert.equal(
+				mDoc.getElementById("profile-link")?.getAttribute("href"),
+				"https://og.trakt.tv/users/custom_movie_fan",
+			);
 			const wlItems = mDoc.querySelectorAll("#panel-watchlist li");
-			assert.equal(wlItems.length, 2);
-			assert.match(wlItems[0].textContent ?? "", /Latest Added/);
-			assert.match(wlItems[1].textContent ?? "", /First Added/);
+			assert.equal(wlItems.length, 3);
+			assert.equal(
+				wlItems[0].querySelector("a")?.getAttribute("href"),
+				"https://og.trakt.tv/movies/latest-added-2025",
+			);
+			assert.equal(wlItems[1].querySelector("a"), null);
+			assert.equal(
+				wlItems[2].querySelector("a")?.getAttribute("href"),
+				"https://og.trakt.tv/movies/99",
+			);
 
 			mDoc.getElementById("tab-recent")?.click();
+			assert.equal(
+				mDoc.querySelector("#panel-recent a")?.getAttribute("href"),
+				"https://og.trakt.tv/movies/dune-part-two-2024",
+			);
 			assert.match(
 				mDoc.getElementById("panel-recent")?.textContent ?? "",
 				/Dune: Part Two/,
@@ -250,6 +328,7 @@ describe("Static HTML pages & Vanilla JS page modules", () => {
 
 			const moviesErrDom = loadHtmlDom("movies.html");
 			await initMoviesPage(moviesErrDom.window.document, {
+				getTraktProfile: async () => null,
 				getWatchlistMovies: async () => {
 					throw new Error("err");
 				},
@@ -266,14 +345,16 @@ describe("Static HTML pages & Vanilla JS page modules", () => {
 			const tvDom = loadHtmlDom("tv.html");
 			const tvDoc = tvDom.window.document;
 			await initTvPage(tvDoc, {
+				getTraktProfile: async () => null,
 				getWatchlistShows: async () => [
-					{ show: { title: "Show A" } },
-					{ show: { title: "Show B", year: 2024 } },
+					{ show: { title: "Show A", ids: { trakt: 42 } } },
+					{ show: { title: "Show No Id" } },
+					{ show: { title: "Show B", year: 2024, ids: { slug: "show-b" } } },
 				],
 				getRecentEpisodes: async () => [
 					{
 						id: 9,
-						show: { title: "Andor", year: 2022 },
+						show: { title: "Andor", year: 2022, ids: { slug: "andor" } },
 						episode: { season: 2, number: 3 },
 						watched_at: "2026-06-01T20:00:00Z",
 					},
@@ -287,8 +368,26 @@ describe("Static HTML pages & Vanilla JS page modules", () => {
 			});
 
 			const tvWl = tvDoc.querySelectorAll("#panel-watchlist li");
-			assert.match(tvWl[0].textContent ?? "", /Show B/);
+			assert.equal(
+				tvWl[0].querySelector("a")?.getAttribute("href"),
+				"https://og.trakt.tv/shows/show-b",
+			);
+			assert.equal(tvWl[1].querySelector("a"), null);
+			assert.equal(
+				tvWl[2].querySelector("a")?.getAttribute("href"),
+				"https://og.trakt.tv/shows/42",
+			);
 			tvDoc.getElementById("tab-recent")?.click();
+			const tvRecentLinks = tvDoc.querySelectorAll("#panel-recent a");
+			assert.equal(tvRecentLinks.length, 2);
+			assert.equal(
+				tvRecentLinks[0].getAttribute("href"),
+				"https://og.trakt.tv/shows/andor",
+			);
+			assert.equal(
+				tvRecentLinks[1].getAttribute("href"),
+				"https://og.trakt.tv/shows/andor/seasons/2/episodes/3",
+			);
 			assert.match(
 				tvDoc.getElementById("panel-recent")?.textContent ?? "",
 				/S2 E3/,
@@ -296,6 +395,9 @@ describe("Static HTML pages & Vanilla JS page modules", () => {
 
 			const tvErrDom = loadHtmlDom("tv.html");
 			await initTvPage(tvErrDom.window.document, {
+				getTraktProfile: async () => ({
+					profileUrl: "https://og.trakt.tv/users/noahffiliation",
+				}),
 				getWatchlistShows: async () => {
 					throw new Error("err");
 				},
@@ -318,11 +420,19 @@ describe("Static HTML pages & Vanilla JS page modules", () => {
 			const animeDom = loadHtmlDom("anime.html");
 			await initAnimePage(animeDom.window.document, {
 				getAnimeList: async () => ({
-					totalPlanToWatch: 2,
+					profileUrl: "https://myanimelist.net/profile/custom_mal",
+					totalPlanToWatch: 3,
 					totalCompleted: 2,
 					planToWatch: [
-						{ id: 1, title: "Pluto", mediaType: "ONA", episodes: 8 },
+						{
+							id: 1,
+							title: "Pluto",
+							url: "https://myanimelist.net/anime/1/Pluto",
+							mediaType: "ONA",
+							episodes: 8,
+						},
 						{ id: 2, title: "TBA Anime", episodes: 0 },
+						{ title: "Idless Anime" },
 					],
 					completed: [
 						{
@@ -336,10 +446,29 @@ describe("Static HTML pages & Vanilla JS page modules", () => {
 					],
 				}),
 			});
-			assert.match(
-				animeDom.window.document.getElementById("panel-plan-to-watch")
-					?.textContent ?? "",
-				/Pluto/,
+			assert.equal(
+				animeDom.window.document
+					.getElementById("profile-link")
+					?.getAttribute("href"),
+				"https://myanimelist.net/profile/custom_mal",
+			);
+			const animePtwLinks = animeDom.window.document.querySelectorAll(
+				"#panel-plan-to-watch a",
+			);
+			assert.equal(animePtwLinks.length, 2);
+			assert.equal(
+				animePtwLinks[0].getAttribute("href"),
+				"https://myanimelist.net/anime/1/Pluto",
+			);
+			assert.equal(
+				animePtwLinks[1].getAttribute("href"),
+				"https://myanimelist.net/anime/2",
+			);
+			assert.equal(
+				animeDom.window.document
+					.querySelector("#panel-completed a")
+					?.getAttribute("href"),
+				"https://myanimelist.net/anime/3",
 			);
 			assert.match(
 				animeDom.window.document.getElementById("panel-completed")
@@ -373,11 +502,13 @@ describe("Static HTML pages & Vanilla JS page modules", () => {
 			const dramasDom = loadHtmlDom("dramas.html");
 			await initDramasPage(dramasDom.window.document, {
 				getDramaList: async () => ({
+					profileUrl: "https://mydramalist.com/profile/custom_mdl",
 					totalPlanToWatch: 2,
 					totalCompleted: 2,
 					planToWatch: [
 						{
 							title: "Signal",
+							url: "https://mydramalist.com/13239-signal",
 							year: 2016,
 							country: "South Korea",
 							type: "Drama",
@@ -387,6 +518,7 @@ describe("Static HTML pages & Vanilla JS page modules", () => {
 					completed: [
 						{
 							title: "My Mister",
+							url: "https://mydramalist.com/25172-my-ajusshi",
 							year: 2018,
 							country: "South Korea",
 							episodes: "16/16",
@@ -396,15 +528,23 @@ describe("Static HTML pages & Vanilla JS page modules", () => {
 					],
 				}),
 			});
-			assert.match(
-				dramasDom.window.document.getElementById("panel-plan-to-watch")
-					?.textContent ?? "",
-				/Signal/,
+			assert.equal(
+				dramasDom.window.document
+					.getElementById("profile-link")
+					?.getAttribute("href"),
+				"https://mydramalist.com/profile/custom_mdl",
 			);
-			assert.match(
-				dramasDom.window.document.getElementById("panel-completed")
-					?.textContent ?? "",
-				/My Mister/,
+			assert.equal(
+				dramasDom.window.document
+					.querySelector("#panel-plan-to-watch a")
+					?.getAttribute("href"),
+				"https://mydramalist.com/13239-signal",
+			);
+			assert.equal(
+				dramasDom.window.document
+					.querySelector("#panel-completed a")
+					?.getAttribute("href"),
+				"https://mydramalist.com/25172-my-ajusshi",
 			);
 
 			const dramasEmpty = loadHtmlDom("dramas.html");
@@ -433,16 +573,53 @@ describe("Static HTML pages & Vanilla JS page modules", () => {
 			const lastfmDom = loadHtmlDom("lastfm.html");
 			await initLastFmPage(lastfmDom.window.document, {
 				getLastFm: async () => ({
+					profileUrl: "https://www.last.fm/user/custom_fm",
 					recenttracks: {
-						track: [{ name: "Weird Fishes", artist: { "#text": "Radiohead" } }],
+						track: [
+							{
+								name: "Weird Fishes",
+								url: "https://www.last.fm/music/Radiohead/_/Weird+Fishes",
+								artist: { "#text": "Radiohead" },
+							},
+							{
+								name: "Let It Happen",
+								artist: { "#text": "Tame Impala" },
+							},
+							{
+								name: "Custom Page",
+								url: "https://www.last.fm/music/Daft+Punk",
+								artist: { "#text": "Daft Punk" },
+							},
+							{
+								name: "Nameless Artist Track",
+								artist: { "#text": "" },
+							},
+							{
+								name: "",
+								artist: { "#text": "Solo Artist" },
+							},
+						],
 					},
 				}),
 			});
-			assert.match(
-				lastfmDom.window.document.getElementById("tracks-container")
-					?.textContent ?? "",
-				/Radiohead/,
+			assert.equal(
+				lastfmDom.window.document
+					.getElementById("profile-link")
+					?.getAttribute("href"),
+				"https://www.last.fm/user/custom_fm",
 			);
+			const lastfmLinks = Array.from(
+				lastfmDom.window.document.querySelectorAll("#tracks-container a"),
+			).map((a) => a.getAttribute("href"));
+			assert.deepEqual(lastfmLinks, [
+				"https://www.last.fm/music/Radiohead/_/Weird+Fishes",
+				"https://www.last.fm/music/Radiohead",
+				"https://www.last.fm/music/Tame+Impala/_/Let+It+Happen",
+				"https://www.last.fm/music/Tame+Impala",
+				"https://www.last.fm/music/Daft+Punk",
+				"https://www.last.fm/music/Daft+Punk",
+				"https://www.last.fm/music/Solo+Artist",
+			]);
 
 			const lastfmErr = loadHtmlDom("lastfm.html");
 			await initLastFmPage(lastfmErr.window.document, {
@@ -474,6 +651,13 @@ describe("Static HTML pages & Vanilla JS page modules", () => {
 		const consoleSpy = mock.method(console, "error", () => {});
 
 		const mockPayloads = new Map([
+			[
+				"/api/trakt?endpoint=profile",
+				{
+					username: "noahffiliation",
+					profileUrl: "https://og.trakt.tv/users/noahffiliation",
+				},
+			],
 			["/api/trakt?endpoint=stats", { movies: { watched: 1 } }],
 			["/api/trakt?endpoint=watched-shows", { count: 1 }],
 			["/api/trakt?endpoint=watchlist-movies", []],

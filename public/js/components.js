@@ -102,6 +102,68 @@ export function createBadge(doc, text, variant = "default") {
 	});
 }
 
+export function toSafeExternalUrl(rawUrl) {
+	if (typeof rawUrl !== "string" || !rawUrl.trim()) {
+		return null;
+	}
+	try {
+		const parsed = new URL(rawUrl.trim());
+		if (parsed.protocol === "https:" || parsed.protocol === "http:") {
+			return parsed.href;
+		}
+	} catch {
+		// Invalid URL returns null below
+	}
+	return null;
+}
+
+export function createTextOrLink(doc, text, href, baseClassName) {
+	const safeHref = toSafeExternalUrl(href);
+	if (!safeHref) {
+		return createElement(doc, "span", {
+			className: baseClassName,
+			text,
+		});
+	}
+	return createElement(doc, "a", {
+		className: `${baseClassName} media-link`,
+		text,
+		attrs: {
+			href: safeHref,
+			target: "_blank",
+			rel: "noopener noreferrer",
+		},
+	});
+}
+
+export function createMediaTitle(doc, title, href) {
+	return createTextOrLink(doc, title, href, "media-title");
+}
+
+export function createBadgeLink(doc, text, href) {
+	const safeHref = toSafeExternalUrl(href);
+	if (!safeHref) {
+		return createBadge(doc, text);
+	}
+	return createElement(doc, "a", {
+		className: "badge badge-link",
+		text,
+		attrs: {
+			href: safeHref,
+			target: "_blank",
+			rel: "noopener noreferrer",
+		},
+	});
+}
+
+export function updateProfileLink(doc, profileUrl) {
+	const link = doc.getElementById("profile-link");
+	const safeHref = toSafeExternalUrl(profileUrl);
+	if (link && safeHref) {
+		link.setAttribute("href", safeHref);
+	}
+}
+
 export function createScoreRating(doc, score) {
 	const wrapper = createElement(doc, "div", { className: "score-rating" });
 	wrapper.appendChild(
@@ -140,11 +202,9 @@ export function createMediaList(doc) {
 	});
 }
 
-export function createTitleRow(doc, title, ...extras) {
+export function createTitleRow(doc, title, href, ...extras) {
 	const primary = createElement(doc, "div", { className: "media-primary" });
-	primary.appendChild(
-		createElement(doc, "span", { className: "media-title", text: title }),
-	);
+	primary.appendChild(createMediaTitle(doc, title, href));
 	for (const node of extras) {
 		if (node) {
 			primary.appendChild(node);
@@ -339,6 +399,7 @@ export async function runCollectionPage(doc, config) {
 		errorMessage: config.errorMessage,
 		async load(els) {
 			const response = await config.fetchData();
+			updateProfileLink(doc, response.profileUrl);
 			const firstItems = response[firstKey] || [];
 			const secondItems = response[secondKey] || [];
 			els.tabs.setTabCounts({
@@ -372,10 +433,12 @@ export async function runWatchlistRecentPage(doc, config) {
 		loadingMessage: config.loadingMessage,
 		errorMessage: config.errorMessage,
 		async load(els) {
-			const [watchlistRes, recentRes] = await Promise.all([
+			const [watchlistRes, recentRes, profileRes] = await Promise.all([
 				config.fetchWatchlist(),
 				config.fetchRecent(),
+				config.fetchProfile(),
 			]);
+			updateProfileLink(doc, profileRes?.profileUrl);
 			const watchlist = watchlistRes.toReversed();
 			els.tabs.setTabCounts({
 				watchlist: watchlist.length,
@@ -386,10 +449,11 @@ export async function runWatchlistRecentPage(doc, config) {
 				return createMediaItem(
 					doc,
 					false,
-					createElement(doc, "span", {
-						className: "media-title",
-						text: media.title,
-					}),
+					createMediaTitle(
+						doc,
+						media.title,
+						config.getWatchlistMediaUrl(media),
+					),
 					media.year ? createBadge(doc, media.year) : null,
 				);
 			});

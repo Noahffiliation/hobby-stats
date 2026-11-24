@@ -6,6 +6,20 @@ async function fetchJson(url, errorMessage) {
 	return response.json();
 }
 
+export async function getTraktProfile() {
+	const data = await fetchJson(
+		"/api/trakt?endpoint=profile",
+		"Failed to fetch Trakt profile",
+	);
+	if (data?.username) {
+		return {
+			...data,
+			profileUrl: `https://og.trakt.tv/users/${encodeURIComponent(data.username)}`,
+		};
+	}
+	return data;
+}
+
 export async function getTraktStats() {
 	return fetchJson("/api/trakt?endpoint=stats", "Failed to fetch Trakt stats");
 }

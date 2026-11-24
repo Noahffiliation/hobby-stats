@@ -91,6 +91,15 @@ export async function GET(request) {
 	const { searchParams } = new URL(request.url, "http://localhost");
 	const endpoint = searchParams.get("endpoint") ?? "";
 
+	if (endpoint === "profile") {
+		const rawUsername = getTraktUsername();
+		const username = encodeURIComponent(rawUsername);
+		return jsonOk({
+			username: rawUsername,
+			profileUrl: `https://og.trakt.tv/users/${username}`,
+		});
+	}
+
 	try {
 		const directPath = DIRECT_ENDPOINTS.get(endpoint);
 		if (directPath) {

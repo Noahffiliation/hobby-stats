@@ -11,6 +11,7 @@ import {
 	getMyDramaListStats,
 	getRecentEpisodes,
 	getRecentMovies,
+	getTraktProfile,
 	getTraktStats,
 	getWatchedShows,
 	getWatchlistMovies,
@@ -20,9 +21,11 @@ import {
 	bootPage,
 	clearStatus,
 	createBadge,
+	createBadgeLink,
 	createElement,
 	createEmptyMessage,
 	createMediaList,
+	createMediaTitle,
 	createProgress,
 	createScoreRating,
 	getTabbedPageElements,
@@ -30,6 +33,8 @@ import {
 	renderError,
 	renderLoading,
 	runTabbedPage,
+	toSafeExternalUrl,
+	updateProfileLink,
 } from "../../public/js/components.js";
 
 describe("public/js/api.js", () => {
@@ -49,6 +54,10 @@ describe("public/js/api.js", () => {
 			return Response.json({ ok: true, url });
 		});
 
+		assert.deepEqual(await getTraktProfile(), {
+			ok: true,
+			url: "/api/trakt?endpoint=profile",
+		});
 		assert.deepEqual(await getTraktStats(), {
 			ok: true,
 			url: "/api/trakt?endpoint=stats",
@@ -65,7 +74,21 @@ describe("public/js/api.js", () => {
 		assert.equal((await getGamesList()).ok, true);
 		assert.equal((await getAnimeList()).ok, true);
 		assert.equal((await getDramaList()).ok, true);
-		assert.equal(calls.length, 13);
+		assert.equal(calls.length, 14);
+
+		globalThis.fetch = mock.fn(async () =>
+			Response.json({
+				username: "noahffiliation",
+				profileUrl: "https://trakt.tv/users/noahffiliation",
+			}),
+		);
+		assert.deepEqual(await getTraktProfile(), {
+			username: "noahffiliation",
+			profileUrl: "https://og.trakt.tv/users/noahffiliation",
+		});
+
+		globalThis.fetch = mock.fn(async () => Response.json(null));
+		assert.equal(await getTraktProfile(), null);
 	});
 
 	it("throws descriptive errors when responses are not ok", async () => {
@@ -73,6 +96,10 @@ describe("public/js/api.js", () => {
 			async () => new Response("err", { status: 502 }),
 		);
 
+		await assert.rejects(
+			() => getTraktProfile(),
+			/Failed to fetch Trakt profile/,
+		);
 		await assert.rejects(() => getTraktStats(), /Failed to fetch Trakt stats/);
 		await assert.rejects(
 			() => getWatchedShows(),
@@ -140,6 +167,55 @@ describe("public/js/components.js", () => {
 		assert.equal(badge1.className, "badge");
 		const badge2 = createBadge(doc, "Completed", "emerald");
 		assert.equal(badge2.className, "badge badge-emerald");
+
+		assert.equal(toSafeExternalUrl(null), null);
+		assert.equal(toSafeExternalUrl("   "), null);
+		assert.equal(toSafeExternalUrl("not a url"), null);
+		assert.equal(toSafeExternalUrl("javascript:alert(1)"), null);
+		assert.equal(
+			toSafeExternalUrl("http://example.com/item"),
+			"http://example.com/item",
+		);
+		assert.equal(
+			toSafeExternalUrl("https://og.trakt.tv/movies/dune"),
+			"https://og.trakt.tv/movies/dune",
+		);
+
+		const plainTitle = createMediaTitle(doc, "Unlinked", "javascript:alert(1)");
+		assert.equal(plainTitle.tagName, "SPAN");
+		const linkedTitle = createMediaTitle(
+			doc,
+			"Linked",
+			"https://og.trakt.tv/movies/dune",
+		);
+		assert.equal(linkedTitle.tagName, "A");
+		assert.equal(linkedTitle.getAttribute("rel"), "noopener noreferrer");
+
+		const plainBadge = createBadgeLink(doc, "S1 E1", undefined);
+		assert.equal(plainBadge.tagName, "SPAN");
+		const linkedBadge = createBadgeLink(
+			doc,
+			"S1 E1",
+			"https://og.trakt.tv/shows/andor/seasons/1/episodes/1",
+		);
+		assert.equal(linkedBadge.tagName, "A");
+		assert.equal(linkedBadge.className, "badge badge-link");
+
+		updateProfileLink(doc, "https://og.trakt.tv/users/custom");
+		const profileAnchor = createElement(doc, "a", {
+			attrs: { id: "profile-link", href: "https://og.trakt.tv/users/default" },
+		});
+		doc.body.appendChild(profileAnchor);
+		updateProfileLink(doc, "javascript:alert(1)");
+		assert.equal(
+			profileAnchor.getAttribute("href"),
+			"https://og.trakt.tv/users/default",
+		);
+		updateProfileLink(doc, "https://og.trakt.tv/users/custom");
+		assert.equal(
+			profileAnchor.getAttribute("href"),
+			"https://og.trakt.tv/users/custom",
+		);
 
 		const score = createScoreRating(doc, 9);
 		assert.match(score.textContent ?? "", /9\/10/);
